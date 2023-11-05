@@ -43,6 +43,37 @@ class Users:
     def set_public_key(self,key):
         self.public_key = key
 
+def admin_action(f):
+    @wraps(f)
+    def decor(*args,**kwargs):
+        key = None
+        if "x-api-key" in request.headers:
+            key = eval(request.headers["x-api-key"])
+            print("Key Captured",key)
+        if not key:
+            return json.dumps({"message":"Admin Action Triggered! No admin Key found."})
+        with open("./config/.env","r") as f:
+            data = eval(f.read())
+            if "admin_id" not in data or data["admin_id"] == "":
+                return json.dumps({"message":"No admin Registered Create an admin first","status_code":401})
+            private_key = data["PRIVATE_KEY"]
+            private_key = PrivateKey.load_pkcs1(private_key)
+        try:
+            decode_key = base64.b64decode(key.encode("utf-8"))    
+            userId = decrypt(decode_key,priv_key=private_key).decode()
+        except Exception as e:
+            print(e)
+            return json.dumps({"message":"Invalid ID detected","status_code":401})
+        with open("./config/users","r") as f:
+            users = eval(f.read())
+            if userId not in users:
+                return json.dumps(dict(message="Invalid User Provided",status_code=401))
+            else:
+                if userId[userId]["role"]!= "admin":
+                    return json.dumps(dict(message="User is not admin",status_code=401))
+        return f()
+    return decor 
+
 
 
 @app.route("/register")
