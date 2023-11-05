@@ -1,7 +1,12 @@
 #------------- SERVER IMPORTS-------------
-from flask import Flask
+import os
 import json
-
+import uuid
+import base64
+from functools import wraps
+from hmac import compare_digest
+from flask import Flask, request,make_response
+from rsa import newkeys, decrypt, encrypt,PrivateKey
 #------------- MODULES IMMPORTS-----------
 
 # Image Generation Module
@@ -14,10 +19,40 @@ from TextGeneration.ReferencePostGeneration import *
 
 # Moments Module
 from Moments.Moments import *
+    
 
 #==================================================================================================
 app = Flask("BuzztrendsAPI")
 
+#=========== Models ========================
+class Users:
+    def __init__(self,user:str,role:str) -> None:
+        self.id = str(uuid.uuid4())
+        self.user = user
+        self.role = role
+        self.public_key = None
+    
+    def from_dict(self,userData:dict):
+        self.id = userData.keys()[0]
+        self.user = userData[self.id]["user"]
+        self.role = userData[self.id]["role"]
+
+    def to_dict(self):
+        return {self.id:{"user":self.user,"role":self.role}}
+
+    def set_public_key(self,key):
+        self.public_key = key
+
+
+
+@app.route("/register")
+@admin_action
+def register():
+    return json.dumps(dict(message="Registration Successful"))
+
+@app.route("/test/users")
+def list_users():
+    pass
 @app.route("/",methods=["GET"])
 def index_():
     return "BuzzTrends API"
