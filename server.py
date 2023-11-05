@@ -56,7 +56,8 @@ def admin_action(f):
             data = eval(f.read())
             if "admin_id" not in data or data["admin_id"] == "":
                 return json.dumps({"message":"No admin Registered Create an admin first","status_code":401})
-            private_key = data["PRIVATE_KEY"]
+            private_key_b64 = data["PRIVATE_KEY"]
+            private_key = base64.b64decode(private_key_b64)
             private_key = PrivateKey.load_pkcs1(private_key)
         try:
             decode_key = base64.b64decode(key.encode("utf-8"))    
@@ -73,8 +74,44 @@ def admin_action(f):
                     return json.dumps(dict(message="User is not admin",status_code=401))
         return f()
     return decor 
+@app.route("/create_admin")
+def create_admin():
 
 
+    user = Users("admin","admin")
+    pub, priv = newkeys(512)
+    user.set_public_key(pub)
+    with open("./config/.env","r") as f:
+        config = eval(f.read())
+        if "PRIVATE_KEY" in config:
+            return json.dumps(
+        dict(
+            message="Admin Already Exists",
+            status_code=401
+        )
+    ) 
+        priv_b64= base64.b64encode(priv.save_pkcs1()).decode("utf-8")
+        pub_b64 = base64.b64encode(pub.save_pkcs1()).decode("utf-8")
+        config["PRIVATE_KEY"]=priv_b64
+        config["PUBLIC_KEY"] =pub_b64
+    with open("./config/.env","w") as f:
+        f.write(json.dumps(config))
+    with open("./config/users","r+") as f:
+        users = eval(f.read())
+        users[user.id] = user.to_dict()[user.id]
+    with open("./config/users","w") as f:
+        
+        f.write(json.dumps(users))
+    
+    API_KEY = encrypt(user.id.encode(),pub)
+    API_KEY = base64.b64encode(API_KEY).decode("utf-8")
+    return json.dumps(
+        dict(
+            message="Admin Created Successfully!",
+            API_KEY=API_KEY,
+            status_code=200
+        )
+    )
 
 @app.route("/register")
 @admin_action
