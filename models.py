@@ -18,7 +18,7 @@ moment data model:
 }
 """
 class BaseMoment(BaseModel):
-    id        : str                   = Field(default_factory=uuid.uuid4, alias="_id")
+    # id        : str                   = Field(default_factory=uuid.uuid4, alias="_id")
     title     : str                   = Field(...)
     url       : str                   = Field(...)
     source    : Union[str,None]       = Field(...)
@@ -28,17 +28,18 @@ class BaseMoment(BaseModel):
 
 class Moments(BaseModel):
     
-    id:str = Field(default_factory=uuid.uuid4, alias="_id")
-    
+    # id:str = Field(default_factory=uuid.uuid4, alias="_id") 
     vector_store_id: str = Field(...)
     social_media   : List[BaseMoment]    = []
     general_news   : List[BaseMoment]    = []
     industry_news  : List[BaseMoment]    = []
     current_events : List[BaseMoment]    = []
 
+class Post(BaseModel):
+    pass
 
 class User(BaseModel):
-    company_id         : str                        = Field(default_factory=uuid.uuid4, alias="_id")
+    company_id         : str                        = Field(default_factory=lambda : str(uuid.uuid4()))
     
     company_name       : str                        = Field(...)
     username           : str                        = Field(...)
@@ -46,8 +47,8 @@ class User(BaseModel):
     company_description: str                        = Field(...)
     content_category   : str                        = Field(...)
     moments            : Union[Moments,None]        = None
-    saved_items        : Union[List[str],None,List] = []
-    last_5_generations : Union[list[str],None,List] = []
+    saved_items        : Union[List[Moments],None,List] = []
+    last_5_generations : Union[list[Post],None,List] = []
 
     model_config = ConfigDict(title='Main')
     @classmethod
@@ -125,6 +126,24 @@ class User(BaseModel):
  'username': 'user_1'}
         ]
         return json_schema
+
+
+class APIModel:
+    def __init__(self,user) -> None:
+        self.uid:dict = uuid.uuid4().hex
+        self.user = user
+        self.role = "non_admin"
+
+    def to_json(self) -> dict[str:str]:
+        return {"uid":self.uid,"user":self.user,"role":self.role}
+
+    def from_json(self,json_:dict) -> None:
+        self.uid = json_.keys()[0]
+        self.user = json_[self.uid]["user"]
+        self.role = json_[self.uid]["role"]
+
+
+
 import json
 from pprint import pprint
 
@@ -146,4 +165,31 @@ if __name__ == "__main__":
 
 
     user = User(company_name="Company 1",username="user_1",password="password",company_description="Company Description",content_category="Category 1",moments=moments,saved_items=[],last_5_generations=[])
-    pprint((user.model_json_schema()))
+
+    from server import db
+
+    # db["users"]["user-data"].insert_one(user.dict())
+    # db["api_subscribers"]["users"].insert_one({"bee621fc-5deb-4409-a428-932112d9a1a7": {
+    #     "user": "test",
+    #     "role": "non_admin"
+    # }})
+    # print(user.dict())
+#     user.validate({
+# 	"company_id" : 100,
+# 	"company_name" : "Zomato",
+# 	"username" : "zomato",
+# 	"password" : "pass1",
+# 	"company_description" : "https://www.zomato.com/about",
+# 	"content_category" : "Indian Food",
+# 	"country" : "India",
+# 	"country_code" : "IN",
+# 	"moments" : {
+# 		"vectorstore_collection_id" : 100,
+# 		"general_news" : [ ],
+# 		"industry_news" : [ ],
+# 		"current_events" : [ ],
+# 		"social_media" : [ ]
+# 	},
+# 	"saved_items" : [ ],
+# 	"last_5_generations" : [ ]
+# })

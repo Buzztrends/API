@@ -128,7 +128,10 @@
                            'vector_store_id': 'vec_1'},
                'password': 'password',
                'saved_items': [],
-               'username': 'user_1'}],
+               'username': 'user_1'},
+```
+## Properties
+```
  'properties': {'_id': {'title': ' Id', 'type': 'string'},
                 'company_description': {'title': 'Company Description',
                                         'type': 'string'},
@@ -152,6 +155,9 @@
                                 'default': [],
                                 'title': 'Saved Items'},
                 'username': {'title': 'Username', 'type': 'string'}},
+```
+## Required Fields
+```
  'required': ['company_name',
               'username',
               'password',
