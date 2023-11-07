@@ -1,26 +1,11 @@
 from pydantic import BaseModel,Field,Json,ConfigDict
 import uuid
 from typing import List,Union
-"""
-user data model:
-{
-    "company_id": <int>,
-    "company_name": <string>,
-    "username": <string>,
-    "password": <hashed string>,
-    "company_description": <string>,
-    "content_category": <string>,
-    "moments": {
-        "vectorstore_collection_id": <int>,
-        "general_news": [<list of moments>],
-        "industry_news": [<list of moments>],
-        "current_events": [<list of moments>],
-        "social_media": [<list of moments>]
-    },
-    "saved_items": [<list of moments>],
-    "last_5_generations": [<list of posts>]
-}
-"""
+from pydantic_core import CoreSchema
+from pydantic import BaseModel, GetJsonSchemaHandler
+from pydantic.json_schema import JsonSchemaValue
+
+
 """
 moment data model:
 {
@@ -65,7 +50,81 @@ class User(BaseModel):
     last_5_generations : Union[list[str],None,List] = []
 
     model_config = ConfigDict(title='Main')
-
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        json_schema = handler(core_schema)
+        json_schema = handler.resolve_ref_schema(json_schema)
+        json_schema['examples'] = [
+            {'company_description': 'Company Description',
+ 'company_id': '2a2871b1-ad9c-4115-8264-c66dece955c6',
+ 'company_name': 'Company 1',
+ 'content_category': 'Category 1',
+ 'last_5_generations': [],
+ 'moments': {'current_events': [{'hashtags': ['h1', 'h2', 'h3'],
+                                 'id': 'b18e724b-2183-489e-95db-ae040f658534',
+                                 'source': 'test_source 3',
+                                 'title': 'Test Title 3',
+                                 'topic': 'Test Topic 3',
+                                 'url': 'www.example.com',
+                                 'validation': 'Test Validation 3'},
+                                {'hashtags': ['h1', 'h2', 'h3'],
+                                 'id': 'e9db6435-b92c-4143-9cad-3bff073aea41',
+                                 'source': 'test_source 4',
+                                 'title': 'Test Title 4',
+                                 'topic': 'Test Topic 4',
+                                 'url': 'www.example.com',
+                                 'validation': 'Test Validation 4'}],
+             'general_news': [{'hashtags': ['h1', 'h2', 'h3'],
+                               'id': 'cd8ba55a-deb7-471a-a92a-33cd0717901e',
+                               'source': 'test_source',
+                               'title': 'Test Title',
+                               'topic': 'Test Topic',
+                               'url': 'www.example.com',
+                               'validation': 'Test Validation'},
+                              {'hashtags': ['h1', 'h2', 'h3'],
+                               'id': '3282c29e-62b2-4c49-9b3d-530ea72a9dad',
+                               'source': 'test_source 2',
+                               'title': 'Test Title 2',
+                               'topic': 'Test Topic 2',
+                               'url': 'www.example.com',
+                               'validation': 'Test Validation 2'}],
+             'id': '9003e9a5-9c3d-4129-ac53-e028f8070704',
+             'industry_news': [{'hashtags': ['h1', 'h2', 'h3'],
+                                'id': '0478ceec-00f5-4830-8260-b0b4a523b430',
+                                'source': 'test_source 7',
+                                'title': 'Test Title 7',
+                                'topic': 'Test Topic 7',
+                                'url': 'www.example.com',
+                                'validation': 'Test Validation 7'},
+                               {'hashtags': ['h1', 'h2', 'h3'],
+                                'id': '3d8876fd-26a9-4bad-a78e-28e4438c79d2',
+                                'source': 'test_source 8',
+                                'title': 'Test Title 8',
+                                'topic': 'Test Topic 8',
+                                'url': 'www.example.com',
+                                'validation': 'Test Validation 8'}],
+             'social_media': [{'hashtags': ['h1', 'h2', 'h3'],
+                               'id': '2df63255-56a5-4178-80d0-204cbf323fa6',
+                               'source': 'test_source 5',
+                               'title': 'Test Title 5',
+                               'topic': 'Test Topic 5',
+                               'url': 'www.example.com',
+                               'validation': 'Test Validation 6'},
+                              {'hashtags': ['h1', 'h2', 'h3'],
+                               'id': '756a8749-e061-4ce8-8249-14f0da4365a2',
+                               'source': 'test_source 6',
+                               'title': 'Test Title 6',
+                               'topic': 'Test Topic 6',
+                               'url': 'www.example.com',
+                               'validation': 'Test Validation 6'}],
+             'vector_store_id': 'vec_1'},
+ 'password': 'password',
+ 'saved_items': [],
+ 'username': 'user_1'}
+        ]
+        return json_schema
 import json
 from pprint import pprint
 
@@ -87,4 +146,4 @@ if __name__ == "__main__":
 
 
     user = User(company_name="Company 1",username="user_1",password="password",company_description="Company Description",content_category="Category 1",moments=moments,saved_items=[],last_5_generations=[])
-    pprint(json.loads (user.json()))
+    pprint((user.model_json_schema()))
