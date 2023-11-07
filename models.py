@@ -28,14 +28,15 @@ class BaseMoment(BaseModel):
 
 class Moments(BaseModel):
     
-    # id:str = Field(default_factory=uuid.uuid4, alias="_id")
-    
+    # id:str = Field(default_factory=uuid.uuid4, alias="_id") 
     vector_store_id: str = Field(...)
     social_media   : List[BaseMoment]    = []
     general_news   : List[BaseMoment]    = []
     industry_news  : List[BaseMoment]    = []
     current_events : List[BaseMoment]    = []
 
+class Post(BaseModel):
+    pass
 
 class User(BaseModel):
     company_id         : str                        = Field(default_factory=lambda : str(uuid.uuid4()))
@@ -46,8 +47,8 @@ class User(BaseModel):
     company_description: str                        = Field(...)
     content_category   : str                        = Field(...)
     moments            : Union[Moments,None]        = None
-    saved_items        : Union[List[str],None,List] = []
-    last_5_generations : Union[list[str],None,List] = []
+    saved_items        : Union[List[Moments],None,List] = []
+    last_5_generations : Union[list[Post],None,List] = []
 
     model_config = ConfigDict(title='Main')
     @classmethod

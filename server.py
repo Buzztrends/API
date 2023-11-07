@@ -92,12 +92,6 @@ def auth_api_key(func):
     @wraps(func)
     def decor(*args,**kwargs):
         global db
-        key = None
-        try:
-            print("\nHeader:",request.headers)
-            print("\nJSON:",request.get_json())
-        except Exception as e:
-            print(e)
 
         if "api-key" in request.headers:
             key = (request.headers["api-key"])
@@ -191,12 +185,14 @@ def register():
                 status_code=200
             )
         )  
-@app.route("/delete_user")
+@app.route("/delete_user",methods=["POST"])
 @admin_action
 def delete_user():
     global db
-    user_data = request.json()
-    resp = db["users"]["api_subscriber"].find_one_and_delete({"user":user_data["user"]})
+    user_data = request.get_json()
+    print("="*20,"\n","User Data\n",user_data)
+    resp = db["users"]["api_subscribers"].find_one_and_delete({"user":user_data["user"]})
+    print("Response\n","="*20,"\n",resp)
     if resp is None:
         return json.dumps(
             dict(message="No User Found",status_code=401)
@@ -206,9 +202,29 @@ def delete_user():
             dict(message="User Deleted Successfully",status_code=200)
         )
 
+@admin_action
 @app.route("/test/users")
 def list_users():
-    db["api_subscribers"]["users"]
+    global db
+    resp = db["api_subscribers"]["users"].find()
+    json.dumps(
+        dict(users=[x['user'] for x in resp],status_code=200)
+    )
+
+def promote_user():
+    global db
+    user_data = request.get_json()
+    print("="*20,"\n","User Data\n",user_data)
+    resp = db["users"]["api_subscribers"].find_one_and_update({"user":user_data["user"]},update={"role","admin"})
+    print("Response\n","="*20,"\n",resp)
+    if resp is None:
+        return json.dumps(
+            dict(message="No User Found",status_code=401)
+        )
+    else:
+        return json.dumps(
+            dict(message="User Promoted to Admin Successfully",status_code=200)
+        )
 @app.route("/",methods=["GET"])
 def index_():
     return "BuzzTrends API"
