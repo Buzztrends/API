@@ -1,0 +1,35 @@
+moment data model:
+{
+    "title": <string>,
+    "url": <string>,
+    "source": <string>,
+    "topic": <string>,
+    "validation": <string or None>,
+    "hashtags": [<list of strings>] or None
+}
+
+post data model:
+{
+    "post_text": <string>,
+    "extras": <string>,
+    "images": [<list of strings>]
+}
+
+user data model:
+{
+    "company_id": <int>,
+    "company_name": <string>,
+    "username": <string>,
+    "password": <hashed string>,
+    "company_description": <string>,
+    "content_category": <string>,
+    "moments": {
+        "vectorstore_collection_id": <int>,
+        "general_news": [<list of moments>],
+        "industry_news": [<list of moments>],
+        "current_events": [<list of moments>],
+        "social_media": [<list of moments>]
+    },
+    "saved_items": [<list of moments>],
+    "last_5_generations": [<list of posts>]
+}
