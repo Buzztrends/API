@@ -191,6 +191,20 @@ def register():
                 status_code=200
             )
         )  
+@app.route("/delete_user")
+@admin_action
+def delete_user():
+    global db
+    user_data = request.json()
+    resp = db["users"]["api_subscriber"].find_one_and_delete({"user":user_data["user"]})
+    if resp is None:
+        return json.dumps(
+            dict(message="No User Found",status_code=401)
+        )
+    else:
+        return json.dumps(
+            dict(message="User Deleted Successfully",status_code=200)
+        )
 
 @app.route("/test/users")
 def list_users():
