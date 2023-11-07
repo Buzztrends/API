@@ -7,6 +7,7 @@ from functools import wraps
 from hmac import compare_digest
 from flask import Flask, request,make_response
 from rsa import newkeys, decrypt, encrypt,PrivateKey
+from flask_pymongo import PyMongo
 #------------- MODULES IMMPORTS-----------
 
 # Image Generation Module
@@ -19,13 +20,23 @@ from TextGeneration.ReferencePostGeneration import *
 
 # Moments Module
 from Moments.Moments import *
-    
+#===========Config Setup==================
+if not os.path.exists("./config/.env"):
+    os.mkdir("./config")
+    with open("./config/.env","w") as f:
+        f.write("{}")
+
+if not os.path.exists("./config/users"):
+    os.mkdir("./config")
+    with open("./config/users","w") as f:
+        f.write("{}")
 
 #==================================================================================================
 app = Flask("BuzztrendsAPI")
 
+
 #=========== Models ========================
-class Users:
+class ApiUsers:
     def __init__(self,user:str,role:str) -> None:
         self.id = str(uuid.uuid4())
         self.user = user
@@ -43,24 +54,31 @@ class Users:
     def set_public_key(self,key):
         self.public_key = key
 
-def admin_action(f):
-    @wraps(f)
+def admin_action(func):
+    @wraps(func)
     def decor(*args,**kwargs):
         key = None
-        if "x-api-key" in request.headers:
-            key = eval(request.headers["x-api-key"])
+        try:
+            print("\nHeader:",request.headers)
+            print("\nJSON:",request.get_json())
+        except Exception as e:
+            print(e)
+
+        if "api-key" in request.headers:
+            key = (request.headers["api-key"])
+            decode_key = base64.b64decode(key.encode("utf-8"))    
             print("Key Captured",key)
         if not key:
+            print(request.get_json())
             return json.dumps({"message":"Admin Action Triggered! No admin Key found."})
         with open("./config/.env","r") as f:
             data = eval(f.read())
-            if "admin_id" not in data or data["admin_id"] == "":
+            if "PRIVATE_KEY" not in data:
                 return json.dumps({"message":"No admin Registered Create an admin first","status_code":401})
             private_key_b64 = data["PRIVATE_KEY"]
             private_key = base64.b64decode(private_key_b64)
             private_key = PrivateKey.load_pkcs1(private_key)
         try:
-            decode_key = base64.b64decode(key.encode("utf-8"))    
             userId = decrypt(decode_key,priv_key=private_key).decode()
         except Exception as e:
             print(e)
@@ -70,9 +88,9 @@ def admin_action(f):
             if userId not in users:
                 return json.dumps(dict(message="Invalid User Provided",status_code=401))
             else:
-                if userId[userId]["role"]!= "admin":
+                if users[userId]["role"]!= "admin":
                     return json.dumps(dict(message="User is not admin",status_code=401))
-        return f()
+        return func()
     return decor 
 @app.route("/create_admin")
 def create_admin():
@@ -113,11 +131,23 @@ def create_admin():
         )
     )
 
-@app.route("/register")
+@app.route("/register",methods=["POST"])
 @admin_action
 def register():
-    return json.dumps(dict(message="Registration Successful"))
-
+    data= None
+    try:
+        data = request.get_json()
+    except Exception as e:
+        print(e)
+        return json.dumps(dict(message="Registration Unsuccessful"))
+    else:
+        user = ApiUsers(data["user"],role="non_admin")
+        with open("./config/users","r") as f:
+            users_data = eval(f.read())
+        users_data[user.id] = user.to_dict()[user.id]
+        with open("./config/users","w") as f:
+            f.write(json.dumps(users_data))
+        return json.dumps(dict(message="Registration Successful"))
 @app.route("/test/users")
 def list_users():
     pass
