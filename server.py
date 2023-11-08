@@ -3,6 +3,7 @@ import os
 import json
 import base64
 import bcrypt
+from security.auth import hash_password
 from functools import wraps
 from flask import Flask, request
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
@@ -237,17 +238,13 @@ from pprint import pprint
 @auth_api_key
 def register_user():
     data = request.get_json()
-    print("="*5,"Request JSON","="*5)
-    pprint(data)
-    user_model = User(**data)
     passw = data["password"]
-    
-
-
-    print("="*5,"Response JSON","="*5)
-    pprint(json.loads(user_model.json()))
-
-    return json.dumps(dict(message="User Registered Successfully"))
+    enc_password = hash_password(passw)
+    data["password"] = enc_password
+    user_model = User(**data)
+    db["users"]["user-data"].insert_one(user_model.model_dump())
+    print("Transaction Success")
+    return json.dumps(dict(message="User Registered Successfully",user=data["username"]))
 
 
 #===================================================
