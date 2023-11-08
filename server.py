@@ -2,6 +2,7 @@
 import os
 import json
 import base64
+import bcrypt
 from functools import wraps
 from flask import Flask, request
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
@@ -36,7 +37,7 @@ if not os.path.exists("./config/users"):
 
 #===========Models=========================
 
-from models import APIModel
+from models import APIModel,User
 
 #==========================================
 
@@ -46,7 +47,7 @@ db = MongoClient(os.environ["MONGO_URI"])
 #=========================================
 
 #================ Authorization ==========
-def admin_action(func):
+def api_admin_action(func):
     global db
     @wraps(func)
     def decor(*args,**kwargs):
@@ -124,7 +125,7 @@ def auth_api_key(func):
 
 
 @app.route("/create_admin")
-def create_admin():
+def create_api_admin():
 
 
     user = APIModel("admin")
@@ -159,8 +160,8 @@ def create_admin():
     )
 
 @app.route("/register",methods=["POST"])
-@admin_action
-def register():
+@api_admin_action
+def register_api():
     data= None
     try:
         data = request.get_json()
@@ -186,8 +187,8 @@ def register():
             )
         )  
 @app.route("/delete_user",methods=["POST"])
-@admin_action
-def delete_user():
+@api_admin_action
+def delete_api_user():
     global db
     user_data = request.get_json()
     print("="*20,"\n","User Data\n",user_data)
@@ -202,16 +203,16 @@ def delete_user():
             dict(message="User Deleted Successfully",status_code=200)
         )
 
-@admin_action
+@api_admin_action
 @app.route("/test/users")
-def list_users():
+def list_api_users():
     global db
     resp = db["api_subscribers"]["users"].find()
     json.dumps(
         dict(users=[x['user'] for x in resp],status_code=200)
     )
 
-def promote_user():
+def promote_api_user():
     global db
     user_data = request.get_json()
     print("="*20,"\n","User Data\n",user_data)
@@ -229,6 +230,27 @@ def promote_user():
 def index_():
     return "BuzzTrends API"
 
+#=================== USER ==========================
+
+from pprint import pprint
+@app.route("/register_user",methods=["POST"])
+@auth_api_key
+def register_user():
+    data = request.get_json()
+    print("="*5,"Request JSON","="*5)
+    pprint(data)
+    user_model = User(**data)
+    passw = data["password"]
+    
+
+
+    print("="*5,"Response JSON","="*5)
+    pprint(json.loads(user_model.json()))
+
+    return json.dumps(dict(message="User Registered Successfully"))
+
+
+#===================================================
 #           Image Generation Route
 @auth_api_key
 @app.route("/image_generation")
