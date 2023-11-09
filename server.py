@@ -3,9 +3,10 @@ import os
 import json
 import base64
 import bcrypt
-from security.auth import hash_password
 from functools import wraps
 from flask import Flask, request
+from security.auth import hash_password
+from security.utlis import is_user_valid
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
 from flask_pymongo import MongoClient
 #------------- MODULES IMMPORTS-----------
@@ -238,6 +239,10 @@ from pprint import pprint
 @auth_api_key
 def register_user():
     data = request.get_json()
+    if is_user_valid(data["username"]):
+        return json.dumps(
+            dict(message="User already Exists",status_code=401)
+        )
     passw = data["password"]
     enc_password = hash_password(passw)
     data["password"] = enc_password
