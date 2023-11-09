@@ -5,7 +5,7 @@ import base64
 import bcrypt
 from functools import wraps
 from flask import Flask, request
-from security.auth import hash_password
+from security.auth import hash_password,verify_password
 from security.utlis import is_user_valid
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
 from flask_pymongo import MongoClient
@@ -126,7 +126,7 @@ def auth_api_key(func):
     return decor
 
 
-@app.route("/create_admin")
+@app.route("/api/create_api_admin")
 def create_api_admin():
 
 
@@ -161,7 +161,7 @@ def create_api_admin():
         )
     )
 
-@app.route("/register",methods=["POST"])
+@app.route("/api/register_api_user",methods=["POST"])
 @api_admin_action
 def register_api():
     data= None
@@ -188,7 +188,7 @@ def register_api():
                 status_code=200
             )
         )  
-@app.route("/delete_user",methods=["POST"])
+@app.route("/api/delete_api_user",methods=["POST"])
 @api_admin_action
 def delete_api_user():
     global db
@@ -206,14 +206,14 @@ def delete_api_user():
         )
 
 @api_admin_action
-@app.route("/test/users")
+@app.route("/api/list_api_users",methods=["GET"])
 def list_api_users():
     global db
     resp = db["api_subscribers"]["users"].find()
     json.dumps(
         dict(users=[x['user'] for x in resp],status_code=200)
     )
-
+@app.route("/api/promote_user",methods=["GET"])
 def promote_api_user():
     global db
     user_data = request.get_json()
@@ -234,12 +234,11 @@ def index_():
 
 #=================== USER ==========================
 
-from pprint import pprint
-@app.route("/register_user",methods=["POST"])
+@app.route("/user/register_user",methods=["POST"])
 @auth_api_key
 def register_user():
     data = request.get_json()
-    if is_user_valid(data["username"]):
+    if  is_user_valid(data["username"]):
         return json.dumps(
             dict(message="User already Exists",status_code=401)
         )
@@ -250,6 +249,22 @@ def register_user():
     db["users"]["user-data"].insert_one(user_model.model_dump())
     print("Transaction Success")
     return json.dumps(dict(message="User Registered Successfully",user=data["username"]))
+
+@app.route("/user/login_user",methods=["POST"])
+@auth_api_key
+def login_user():
+    data = request.get_json()
+    if not is_user_valid(data["username"]):
+        return json.dumps(
+            dict(message="User Does not Exists",status_code=401)
+        )
+    passw = data["password"]
+    hashed_password = db["users"]["user-data"].find_one({"username":data["username"]})["password"]
+    if verify_password(passw,hashed_password):
+        return json.dumps(
+            dict(message="User Authenticated Successfully",status_code=200)
+        )
+    return json.dumps(message="User authentication Failed",status_code=401)
 
 
 #===================================================
