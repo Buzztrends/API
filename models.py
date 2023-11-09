@@ -39,7 +39,7 @@ class Post(BaseModel):
     pass
 
 class User(BaseModel):
-    company_id         : str                        = Field(default_factory=lambda : str(uuid.uuid4()))
+    company_id         : str                        = Field(default_factory=lambda : str(uuid.uuid4().int))
     
     company_name       : str                        = Field(...)
     username           : str                        = Field(...)
