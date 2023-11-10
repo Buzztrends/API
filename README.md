@@ -36,7 +36,7 @@ Root
     "url": <string>,
     "source": <string>,
     "topic": <string>,
-    "validation": <string or None>,
+    "validation": <validation datamodel>,
     "hashtags": [<list of strings>] or None
 }
 ```
@@ -51,6 +51,36 @@ post data model:
 }
 ```
 
+# User Datamodel
+```
+{
+    "company_id": <int>,
+    "company_name": <string>,
+    "username": <string>,
+    "password": <hashed string>,
+    "company_description": <string>,
+    "content_category": <string>,
+    "country": <string>,
+    "country_code": <string>
+    "moments": {
+        "vectorstore_collection_id": <int>,
+        "general_news": [<list of moments>],
+        "industry_news": [<list of moments>],
+        "current_events": [<list of moments>],
+        "social_media": [<list of moments>]
+    },
+    "saved_items": [<list of moments>],
+    "last_5_generations": [<list of posts>]
+}
+```
+
+# Validation Datamodel
+```
+{
+    "google_trends": [{<date>:<value>}, ...] or None,
+    "sun_chart": [{<hashtag>:<value>}, ...] oe None
+}
+```
 
 # Payload Structure
 
@@ -77,24 +107,28 @@ https://<url>/text_generation/moments
         "url":<string>,
         "source": <string>,
         "topic": <string>,
-        "validation": <string or None>
+        "top_image": <string>,
+        "keywords": [<list of strings>]
+        "validation": <validation datamodel>
     }, ... ],
     "industry_news": [{
         "title": <string>,
         "url":<string>,
         "source": <string>,
         "topic": <string>,
-        "validation": <string or None>    
+        "top_image": <string>,
+        "keywords": [<list of strings>]
+        "validation": <validation datamodel>
     }, ... ]
     "current_events": [{
         "event_name": <string>,
         "topic": <string>,
-        "validation": <string or None>
+        "validation": <validation datamodel>
     }, ... ],
     "social_media_trends": [{
         "title": <string>,
         "hashtags": [<list of strings>],
-        "validation": <string or None>
+        "validation": <validation datamodel>
     }]
 }
 ```
