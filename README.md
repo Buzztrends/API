@@ -77,10 +77,18 @@ post data model:
 # Validation Datamodel
 ```
 {
-    "google_trends": [{<date>:<value>}, ...] or None,
-    "sun_chart": [{<hashtag>:<value>}, ...] oe None
+    "google_trends": [{<date>:<int>}, ...] or None, # use this to create a line chart
+    "hashtags": [{<hashtag>:<int>}, ...] or None # use this to create a sun chart
 }
 ```
+
+<b>
+
+* _"google_trends"_ is only returned in case of general news and industry news
+
+* _"hashtag"_ is only returned in case of social media
+
+</b>
 
 # Payload Structure
 
