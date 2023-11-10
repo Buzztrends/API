@@ -1,0 +1,10 @@
+{
+    "c4aa60ef-3654-4c6c-af04-16d132b4d232": {
+        "user": "admin",
+        "role": "admin"
+    },
+    "bee621fc-5deb-4409-a428-932112d9a1a7": {
+        "user": "test",
+        "role": "non_admin"
+    }
+}
