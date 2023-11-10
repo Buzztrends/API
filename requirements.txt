@@ -24,6 +24,4 @@ praw==7.7.1
 nltk==3.8.1 
 torch==2.0.0
 diffusers==0.21.3
-transformers==4.28.1
-accelerate==0.23.0
 flask==2.3.3
