@@ -77,7 +77,10 @@ post data model:
 # Validation Datamodel
 ```
 {
-    "google_trends": [{<date>:<int>}, ...] or None, # use this to create a line chart
+    "google_trends": {
+        "raw_data":[{<date>:<int>}, ....], # use this to create a line chart
+        "keywords":[<list of string>] # use this to embed the google trends chart (preffered)
+    } or None, 
     "hashtags": [{<hashtag>:<int>}, ...] or None # use this to create a sun chart
 }
 ```
@@ -112,6 +115,7 @@ https://<url>/text_generation/moments
 {
     "general_news": [{
         "title": <string>,
+        "description": <string>,
         "url":<string>,
         "source": <string>,
         "topic": <string>,
