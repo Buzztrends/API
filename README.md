@@ -116,7 +116,6 @@ https://<url>/text_generation/moments
     "general_news": [{
         "title": <string>,
         "description": <string>,
-        "image_url": <string>,
         "url":<string>,
         "source": <string>,
         "topic": <string>,
@@ -127,7 +126,6 @@ https://<url>/text_generation/moments
     "industry_news": [{
         "title": <string>,
         "description": <string>,
-        "image_url": <string>,
         "url":<string>,
         "source": <string>,
         "topic": <string>,
