@@ -2,7 +2,7 @@
 import os
 
 if not os.path.exists("./config/.env"):
-    os.mkdir("./config")
+    os.mkdir("./config/.env")
     with open("./config/.env","w") as f:
         f.write("")
 
