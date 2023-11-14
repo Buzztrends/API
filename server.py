@@ -367,7 +367,7 @@ def generate_post():
             moment_memory=moment_memory
         )
     return json.dumps(
-        data = out,status_code = 200
+       dict( data = out,status_code = 200)
     )
 
 #           Text Generation Route - Reference Post Generation
@@ -419,7 +419,7 @@ def generate_reference_post():
             moment_memory=moment_memory
         )
     return json.dumps(
-        data = out,status_code = 200
+       dict( data = out,status_code = 200)
     )
 
 #           Text Generation Route - Catelogue Generation
@@ -481,7 +481,7 @@ def generate_post_from_catalogue():
             ref_post = data["reference_post"]
         )
     return json.dumps(
-        data = out,status_code = 200
+       dict( data = out,status_code = 200)
     )
 
 if __name__ == "__main__":
