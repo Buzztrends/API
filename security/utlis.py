@@ -10,6 +10,8 @@ def is_user_valid(username:str):
 
 def find_user(username:str):
     return db["users"]["user-data"].find_one({"username":username})
+def find_company(company_id:str):
+    return db["users"]["user-data"].find_one({"company_id":company_id})
 
 if __name__ =="__main__":
     print(is_user_valid("Lakme"))

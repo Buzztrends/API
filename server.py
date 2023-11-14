@@ -281,7 +281,7 @@ def login_user():
 def get_user():
     # print(request.json())
     data = request.get_json()
-    user = find_user(data["username"])
+    user = find_company(data["company_id"])
     if user == None:
         return json.dumps(
             dict(message="User Does not Exists",status_code=401)
