@@ -426,7 +426,7 @@ def generate_reference_post():
 def generate_post_from_catalogue():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
-    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {data['business_type']}", country=data["country_code"], num_results=5))
+    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {data['business_type']}", country=company_data["country_code"], num_results=5))
 
     moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
 
