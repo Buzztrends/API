@@ -1,12 +1,5 @@
 #------------- SERVER IMPORTS-------------
-import os
-# environment setup
-with open(".env", "r") as key_file:
-    keys = list(key_file)
 
-for item in keys:
-    variable, value = item.split("=")[0], "=".join(item.split("=")[1:])
-    os.environ[variable] = value.replace("\n", "")
 
 
 import json
@@ -35,11 +28,18 @@ from Moments.Moments import *
 
 
 
-# if not os.path.exists("./config/.env"):
-#     os.mkdir("./config")
-#     with open("./config/.env","w") as f:
-#         f.write("{}")
+if not os.path.exists("./config/.env"):
+    os.mkdir("./config")
+    with open("./config/.env","w") as f:
+        f.write("")
+import os
+# environment setup
+with open("./config/.env", "r") as key_file:
+    keys = list(key_file)
 
+for item in keys:
+    variable, value = item.split("=")[0], "=".join(item.split("=")[1:])
+    os.environ[variable] = value.replace("\n", "")
 # if not os.path.exists("./config/users"):
 #     os.mkdir("./config")
 #     with open("./config/users","w") as f:
