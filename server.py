@@ -10,7 +10,7 @@ from flask import Flask, request
 from security.auth import hash_password,verify_password
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
 from flask_pymongo import MongoClient
-
+from utils.utils import run_simple_query
 from security.utlis import *
 #------------- MODULES IMMPORTS-----------
 
@@ -34,7 +34,7 @@ if not os.path.exists("./config/.env"):
         f.write("")
 import os
 # environment setup
-with open("./config/.env", "r") as key_file:
+with open("./config/.key", "r") as key_file:
     keys = list(key_file)
 
 for item in keys:
@@ -293,12 +293,31 @@ def get_user():
 #===================================================
 #           Image Generation Route
 @auth_api_key
-@app.route("/image_generation")
+@app.route("/image_generation/edenai")
 def generate_image():
     # write the driver code here
-
-
-    generate_image_edenai()
+    data = request.get_json()
+    try: 
+        extras = data["extras"]
+    except ValueError:
+        json.dumps(
+            dict(message="Extras not available",status_code=401)
+        )
+    else:
+        output = run_simple_query(extras, """What is the text suggested for images only. Write your answer as text seperated by ||, eg <text 1>||<text 2>. Remove the 'images' title, I only want to retain the content""")
+        image_queries = output.split("||")
+        if not len(image_queries) > 1: 
+            image_queries = output.split(".")
+        print(image_queries)
+        images = []
+        for i, item in enumerate(image_queries):
+            images.append(generate_image_edenai(item, provider="stabilityai"))
+        return json.dumps(
+            dict(
+            images = images,
+            status_code = 200)
+        )
+        
 
 #           Text Generation Route - Simple Generation
 @auth_api_key

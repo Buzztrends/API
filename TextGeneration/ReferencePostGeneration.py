@@ -1,7 +1,7 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
 
-from .utils import get_llm
+from utils.utils import get_llm
 
 def generate_similar_content(company_name: str,
     moment: str,
