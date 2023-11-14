@@ -323,39 +323,161 @@ def generate_image():
 @auth_api_key
 @app.route("/text_generation/simple_generation")
 def generate_post():
-    # write the driver code here
+    data = request.get_json()
+    moment = data["moment"].split(" | ")[0]
+    company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
+    if not company_data:
+        return json.dumps(
+            dict(message="Invalid Company ID")
+        )
+    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {data['business_type']}", country=data["country_code"], num_results=5))
+    moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
 
-    post = "example post"
-    extras = ["example extras"]
+    moment_memory = VectorStoreRetrieverMemory(
+            retriever=moment_retriver,
+            input_key="moment_query"
+                            )
+    
+    
+
+    if data["custom_moment"] ==1:
+        out = generate_content(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            tone=data["tone"],
+            objective=data["objective"],
+            structure=data["structure"],
+            location=data["location"],
+            audience=data["audience"],
+            company_info=company_data["company_info"],
+            moment_memory=moment_memory
+        )
+    else:
+        out = generate_content(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            tone=data["tone"],
+            objective=data["objective"],
+            structure=data["structure"],
+            location=data["location"],
+            audience=data["audience"],
+            company_info=company_data["company_info"],
+            moment_memory=moment_memory
+        )
     return json.dumps(
-        dict(post=post,extras=extras)
+        data = out,status_code = 200
     )
 
 #           Text Generation Route - Reference Post Generation
 @auth_api_key
 @app.route("/text_generation/reference_post_generation")
 def generate_reference_post():
-    # write the driver code here
+    data = request.get_json()
+    moment = data["moment"].split(" | ")[0]
+    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {data['business_type']}", country=data["country_code"], num_results=5))
 
-    post = "example post"
-    extras = ["example extras"]
+    moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
+
+    moment_memory = VectorStoreRetrieverMemory(
+            retriever=moment_retriver,
+            input_key="moment_query"
+                            )
+    
+    company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
+    
+    if not company_data:
+        return json.dumps(
+            dict(message="Invalid Company ID")
+        )
+
+    if data["custom_moment"] ==1:
+        out = generate_similar_content(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            objective=data["objective"],
+            location=data["location"],
+            audience=data["audience"],
+            ref_post=data["reference_post"],
+            company_info=company_data["company_info"],
+            moment_memory=moment_memory
+        )
+    else:
+        out = generate_similar_content(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            objective=data["objective"],
+            location=data["location"],
+            audience=data["audience"],
+            ref_post=data["reference_post"],
+            company_info=company_data["company_info"],
+            moment_memory=moment_memory
+        )
     return json.dumps(
-        dict(post=post,extras=extras)
+        data = out,status_code = 200
     )
 
 #           Text Generation Route - Catelogue Generation
 @auth_api_key 
 @app.route("/text_generation/catelogue_generation")
 def generate_post_from_catalogue():
-    
-    
+    data = request.get_json()
+    moment = data["moment"].split(" | ")[0]
+    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {data['business_type']}", country=data["country_code"], num_results=5))
 
-    # write the driver code here
+    moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
+
+    moment_memory = VectorStoreRetrieverMemory(
+            retriever=moment_retriver,
+            input_key="moment_query"
+            )
     
-    post = "example post"
-    extras = ["example extras"]
+    company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
+    
+    if not company_data:
+        return json.dumps(
+            dict(message="Invalid Company ID")
+        )
+
+    if data["custom_moment"] ==1:
+        out = generate_post_with_prod(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            tone=data["tone"],
+            objective=data["objective"],
+            structure=data["structure"],
+            location=data["location"],
+            audience=data["audience"],
+            company_info=company_data["company_info"],
+            moment_memory=moment_memory,
+            products = pd.read_csv(data["products"]),
+            product_names_col = data["product_names_col"],
+            product_name = data["product_name"],
+            ref_post = data["reference_post"]
+        )
+    else:
+        out = generate_post_with_prod(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            tone=data["tone"],
+            objective=data["objective"],
+            structure=data["structure"],
+            location=data["location"],
+            audience=data["audience"],
+            company_info=company_data["company_info"],
+            moment_memory=moment_memory,
+            products = pd.read_csv(data["products"]),
+            product_names_col = data["product_names_col"],
+            product_name = data["product_name"],
+            ref_post = data["reference_post"]
+        )
     return json.dumps(
-        dict(post=post,extras=extras)
+        data = out,status_code = 200
     )
 
 if __name__ == "__main__":
