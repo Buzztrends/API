@@ -49,7 +49,7 @@ def get_sitetexts(sitelinks):
     return sitetexts
 
 
-def googleSearch(query:str,n:int=10):
+def googleSearch(query:str, country:str="IN", num_results:int=10):
     """
     Fetches top 'n' links for the corresponding links  and 'query'
 
@@ -68,13 +68,15 @@ def googleSearch(query:str,n:int=10):
     
     results = []
     nextPage = 0
+    n = num_results
+    print("Getting information on:", query)
 
     # build the service
     resource = build("customsearch", 'v1', developerKey=api_key).cse()
     
     # search the required number of URLs
     for i in range(n//10):
-        resp= resource.list(q=query, cx=cse_key,num=10,start=nextPage).execute()
+        resp= resource.list(q=query, cx=cse_key,num=10,start=nextPage,gl=country,dateRestrict = {'d':30}).execute()
         nextPage = resp['queries']['nextPage'][0]['startIndex']
         links = [i['link'] for i in resp['items']]
         results.extend(links)

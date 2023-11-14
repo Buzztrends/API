@@ -330,7 +330,7 @@ def generate_post():
         return json.dumps(
             dict(message="Invalid Company ID")
         )
-    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {data['business_type']}", country=data["country_code"], num_results=5))
+    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
     moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
 
     moment_memory = VectorStoreRetrieverMemory(
@@ -350,7 +350,7 @@ def generate_post():
             structure=data["structure"],
             location=data["location"],
             audience=data["audience"],
-            company_info=company_data["company_info"],
+            company_info=company_data["company_description"],
             moment_memory=moment_memory
         )
     else:
@@ -363,7 +363,7 @@ def generate_post():
             structure=data["structure"],
             location=data["location"],
             audience=data["audience"],
-            company_info=company_data["company_info"],
+            company_description=company_data["company_description"],
             moment_memory=moment_memory
         )
     return json.dumps(
@@ -376,7 +376,10 @@ def generate_post():
 def generate_reference_post():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
-    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {data['business_type']}", country=data["country_code"], num_results=5))
+    company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
+
+
+    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
 
     moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
 
@@ -385,7 +388,6 @@ def generate_reference_post():
             input_key="moment_query"
                             )
     
-    company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
     
     if not company_data:
         return json.dumps(
@@ -401,7 +403,7 @@ def generate_reference_post():
             location=data["location"],
             audience=data["audience"],
             ref_post=data["reference_post"],
-            company_info=company_data["company_info"],
+            company_info=company_data["company_description"],
             moment_memory=moment_memory
         )
     else:
@@ -413,7 +415,7 @@ def generate_reference_post():
             location=data["location"],
             audience=data["audience"],
             ref_post=data["reference_post"],
-            company_info=company_data["company_info"],
+            company_info=company_data["company_description"],
             moment_memory=moment_memory
         )
     return json.dumps(
@@ -426,7 +428,10 @@ def generate_reference_post():
 def generate_post_from_catalogue():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
-    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {data['business_type']}", country=company_data["country_code"], num_results=5))
+    company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
+    
+    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
+
 
     moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
 
@@ -435,7 +440,6 @@ def generate_post_from_catalogue():
             input_key="moment_query"
             )
     
-    company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
     
     if not company_data:
         return json.dumps(
@@ -452,7 +456,7 @@ def generate_post_from_catalogue():
             structure=data["structure"],
             location=data["location"],
             audience=data["audience"],
-            company_info=company_data["company_info"],
+            company_info=company_data["company_description"],
             moment_memory=moment_memory,
             products = pd.read_csv(data["products"]),
             product_names_col = data["product_names_col"],
@@ -469,7 +473,7 @@ def generate_post_from_catalogue():
             structure=data["structure"],
             location=data["location"],
             audience=data["audience"],
-            company_info=company_data["company_info"],
+            company_info=company_data["company_description"],
             moment_memory=moment_memory,
             products = pd.read_csv(data["products"]),
             product_names_col = data["product_names_col"],
@@ -482,7 +486,7 @@ def generate_post_from_catalogue():
 
 if __name__ == "__main__":
     app.run(
-        host="localhost",
+        host="0.0.0.0",
         port=8001,
         debug=True
     )
