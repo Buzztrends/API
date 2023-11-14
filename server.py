@@ -298,10 +298,7 @@ def generate_image():
     # write the driver code here
 
 
-    urls = ["tempurl.url"]
-    return json.dumps(
-        dict(urls=urls)
-    )
+    generate_image_edenai()
 
 #           Text Generation Route - Simple Generation
 @auth_api_key
