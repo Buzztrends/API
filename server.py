@@ -1,5 +1,18 @@
 #------------- SERVER IMPORTS-------------
+import os
 
+if not os.path.exists("./config/.env"):
+    os.mkdir("./config")
+    with open("./config/.env","w") as f:
+        f.write("")
+
+# environment setup
+with open("./config/.key", "r") as key_file:
+    keys = list(key_file)
+
+for item in keys:
+    variable, value = item.split("=")[0], "=".join(item.split("=")[1:])
+    os.environ[variable] = value.replace("\n", "")
 
 
 import json
@@ -24,28 +37,6 @@ from TextGeneration.ReferencePostGeneration import *
 
 # Moments Module
 from Moments.Moments import *
-#===========Config Setup==================
-
-
-
-if not os.path.exists("./config/.env"):
-    os.mkdir("./config")
-    with open("./config/.env","w") as f:
-        f.write("")
-import os
-# environment setup
-with open("./config/.key", "r") as key_file:
-    keys = list(key_file)
-
-for item in keys:
-    variable, value = item.split("=")[0], "=".join(item.split("=")[1:])
-    os.environ[variable] = value.replace("\n", "")
-# if not os.path.exists("./config/users"):
-#     os.mkdir("./config")
-#     with open("./config/users","w") as f:
-#         f.write("{}")
-
-#==================================================================================================
 
 #===========Models=========================
 
@@ -240,7 +231,7 @@ def promote_api_user():
         )
 @app.route("/",methods=["GET"])
 def index_():
-    return "BuzzTrends API"
+    return json.dumps({"response": "BuzzTrends API, you found the correct link :D"})
 
 #=================== USER ==========================
 
@@ -274,7 +265,7 @@ def login_user():
         return json.dumps(
             dict(message="User Authenticated Successfully",status_code=200)
         )
-    return json.dumps(message="User authentication Failed",status_code=401)
+    return json.dumps(dict(message="User authentication Failed",status_code=401))
 
 @app.route("/user/data",methods=["GET"])
 @auth_api_key
@@ -287,7 +278,6 @@ def get_user():
             dict(message="User Does not Exists",status_code=401)
         )
 
-    user.pop("_id", None)
     return json.dumps(user)
 
 #===================================================
@@ -351,7 +341,8 @@ def generate_post():
             location=data["location"],
             audience=data["audience"],
             company_info=company_data["company_description"],
-            moment_memory=moment_memory
+            moment_memory=moment_memory,
+            model="gpt_4_high_temp"
         )
     else:
         out = generate_content(
@@ -363,12 +354,11 @@ def generate_post():
             structure=data["structure"],
             location=data["location"],
             audience=data["audience"],
-            company_description=company_data["company_description"],
-            moment_memory=moment_memory
+            company_info=company_data["company_description"],
+            moment_memory=moment_memory,
+            model="gpt_4_high_temp"
         )
-    return json.dumps(
-       dict( data = out,status_code = 200)
-    )
+    return json.dumps(out)
 
 #           Text Generation Route - Reference Post Generation
 @auth_api_key
@@ -404,7 +394,8 @@ def generate_reference_post():
             audience=data["audience"],
             ref_post=data["reference_post"],
             company_info=company_data["company_description"],
-            moment_memory=moment_memory
+            moment_memory=moment_memory,
+            model="gpt_4_high_temp"
         )
     else:
         out = generate_similar_content(
@@ -416,11 +407,10 @@ def generate_reference_post():
             audience=data["audience"],
             ref_post=data["reference_post"],
             company_info=company_data["company_description"],
-            moment_memory=moment_memory
+            moment_memory=moment_memory,
+            model="gpt_4_high_temp"
         )
-    return json.dumps(
-       dict( data = out,status_code = 200)
-    )
+    return json.dumps(out)
 
 #           Text Generation Route - Catelogue Generation
 @auth_api_key 
@@ -461,7 +451,8 @@ def generate_post_from_catalogue():
             products = pd.read_csv(data["products"]),
             product_names_col = data["product_names_col"],
             product_name = data["product_name"],
-            ref_post = data["reference_post"]
+            ref_post = data["reference_post"],
+            model="gpt_4_high_temp"
         )
     else:
         out = generate_post_with_prod(
@@ -478,11 +469,10 @@ def generate_post_from_catalogue():
             products = pd.read_csv(data["products"]),
             product_names_col = data["product_names_col"],
             product_name = data["product_name"],
-            ref_post = data["reference_post"]
+            ref_post = data["reference_post"],
+            model="gpt_4_high_temp"
         )
-    return json.dumps(
-       dict( data = out,status_code = 200)
-    )
+    return json.dumps(out)
 
 if __name__ == "__main__":
     app.run(

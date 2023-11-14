@@ -34,10 +34,12 @@ Root
 {
     "title": <string>,
     "url": <string>,
+    "description": <string>,
+    "card_text": <string>,
+    "top_image": <string>,
     "source": <string>,
     "topic": <string>,
     "validation": <validation datamodel>,
-    "hashtags": [<list of strings>] or None
 }
 ```
 
@@ -119,7 +121,6 @@ https://<url>/text_generation/moments
         "url":<string>,
         "card_text": <string>,
         "source": <string>,
-        "topic": <string>,
         "top_image": <string>,
         "validation": <validation datamodel>
     }, ... ],
@@ -129,7 +130,6 @@ https://<url>/text_generation/moments
         "url":<string>,
         "card_text": <string>,
         "source": <string>,
-        "topic": <string>,
         "top_image": <string>,
         "validation": <validation datamodel>
     }, ... ]
