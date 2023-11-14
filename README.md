@@ -121,7 +121,6 @@ https://<url>/text_generation/moments
         "source": <string>,
         "topic": <string>,
         "top_image": <string>,
-        "keywords": [<list of strings>]
         "validation": <validation datamodel>
     }, ... ],
     "industry_news": [{
@@ -132,7 +131,6 @@ https://<url>/text_generation/moments
         "source": <string>,
         "topic": <string>,
         "top_image": <string>,
-        "keywords": [<list of strings>]
         "validation": <validation datamodel>
     }, ... ]
     "current_events": [{

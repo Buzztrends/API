@@ -1,14 +1,24 @@
 #------------- SERVER IMPORTS-------------
 import os
+# environment setup
+with open(".env", "r") as key_file:
+    keys = list(key_file)
+
+for item in keys:
+    variable, value = item.split("=")[0], "=".join(item.split("=")[1:])
+    os.environ[variable] = value.replace("\n", "")
+
+
 import json
 import base64
 import bcrypt
 from functools import wraps
 from flask import Flask, request
 from security.auth import hash_password,verify_password
-from security.utlis import is_user_valid
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
 from flask_pymongo import MongoClient
+
+from security.utlis import *
 #------------- MODULES IMMPORTS-----------
 
 # Image Generation Module
@@ -25,15 +35,15 @@ from Moments.Moments import *
 
 
 
-if not os.path.exists("./config/.env"):
-    os.mkdir("./config")
-    with open("./config/.env","w") as f:
-        f.write("{}")
+# if not os.path.exists("./config/.env"):
+#     os.mkdir("./config")
+#     with open("./config/.env","w") as f:
+#         f.write("{}")
 
-if not os.path.exists("./config/users"):
-    os.mkdir("./config")
-    with open("./config/users","w") as f:
-        f.write("{}")
+# if not os.path.exists("./config/users"):
+#     os.mkdir("./config")
+#     with open("./config/users","w") as f:
+#         f.write("{}")
 
 #==================================================================================================
 
@@ -266,6 +276,19 @@ def login_user():
         )
     return json.dumps(message="User authentication Failed",status_code=401)
 
+@app.route("/user/data",methods=["GET"])
+@auth_api_key
+def get_user():
+    # print(request.json())
+    data = request.get_json()
+    user = find_user(data["username"])
+    if user == None:
+        return json.dumps(
+            dict(message="User Does not Exists",status_code=401)
+        )
+
+    user.pop("_id", None)
+    return json.dumps(user)
 
 #===================================================
 #           Image Generation Route
@@ -308,8 +331,11 @@ def generate_reference_post():
 @auth_api_key 
 @app.route("/text_generation/catelogue_generation")
 def generate_post_from_catalogue():
-    # write the driver code here
+    
+    
 
+    # write the driver code here
+    
     post = "example post"
     extras = ["example extras"]
     return json.dumps(
