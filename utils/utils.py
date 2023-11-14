@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 
+from googleapiclient.discovery import build
 
 def extract_text_from(url):
     print("Getting text:", url)
