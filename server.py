@@ -189,6 +189,8 @@ def register_api():
                 status_code=200
             )
         )  
+
+
 @app.route("/api/delete_api_user",methods=["POST"])
 @api_admin_action
 def delete_api_user():
