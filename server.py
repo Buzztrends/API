@@ -280,8 +280,6 @@ def get_user():
             dict(message="User Does not Exists",status_code=401)
         )
 
-    return json.dumps(user)
-
 #===================================================
 #           Image Generation Route
 @auth_api_key
