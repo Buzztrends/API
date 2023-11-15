@@ -220,7 +220,7 @@ def list_api_users():
     json.dumps(
         dict(users=[x['user'] for x in resp],status_code=200)
     )
-@app.route("/api/promote_user",methods=["GET"])
+@app.route("/api/promote_user",methods=["POST"])
 def promote_api_user():
     global db
     user_data = request.get_json()
@@ -275,8 +275,12 @@ def login_user():
         )
     return json.dumps(dict(message="User authentication Failed",status_code=401))
 
+<<<<<<< HEAD
 @app.route("/user/data",methods=["GET"])
 @cross_origin
+=======
+@app.route("/user/data",methods=["POST"])
+>>>>>>> fba89e38db0130084a7107208d8bf45b0e9a66de
 @auth_api_key
 def get_user():
     # print(request.json())
@@ -315,14 +319,14 @@ def update_user():
                 old_password = db["users"]["user-data"].find_one({"username":username})["password"]
 
                 if verify_password(old_value,old_password):
-                    db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":new_value}})
+                    db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":hash_password(new_value)}})
                 else:
                     json.dumps(
                         dict(message="Incorrect Old Password Provided",status_code=401)
                     )
                 
         else:
-            db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":new_value}})
+            db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":(new_value)}})
     else:
         json.dumps(
                         dict(message="Invalid User Provided",status_code=401)
@@ -330,12 +334,32 @@ def update_user():
     return json.dumps(
         dict(message="User data updated Successfully",status_code=200)
     )
+
+@app.route("/user/delete_user",methods=["POST"])
+def delete_user():
+    data = request.get_json()
+    username = data["username"]
+    
+    if not is_user_valid(username):
+        return json.dumps(
+            dict(message="Invalid User Encountered",status_code=401)
+        )
+    else:
+        db["users"]["user-data"].delete_one({"username":username})
+        return json.dumps(
+            dict(message="User Deleted Successfully",status_code=200)
+        )
 #===================================================
 #           Image Generation Route
+<<<<<<< HEAD
 
 @app.route("/image_generation/edenai")
 @cross_origin
 @auth_api_key
+=======
+@auth_api_key
+@app.route("/image_generation/edenai",methods=["POST"])
+>>>>>>> fba89e38db0130084a7107208d8bf45b0e9a66de
 def generate_image():
     # write the driver code here
     data = request.get_json()
@@ -364,7 +388,7 @@ def generate_image():
 #           Text Generation Route - Simple Generation
 @cross_origin
 @auth_api_key
-@app.route("/text_generation/simple_generation")
+@app.route("/text_generation/simple_generation",methods=["POST"])
 def generate_post():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
@@ -416,7 +440,7 @@ def generate_post():
 #           Text Generation Route - Reference Post Generation
 @cross_origin
 @auth_api_key
-@app.route("/text_generation/reference_post_generation")
+@app.route("/text_generation/reference_post_generation",methods=["POST"])
 def generate_reference_post():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
@@ -469,7 +493,7 @@ def generate_reference_post():
 #           Text Generation Route - Catelogue Generation
 @cross_origin
 @auth_api_key 
-@app.route("/text_generation/catelogue_generation")
+@app.route("/text_generation/catelogue_generation",methods=["POST"])
 def generate_post_from_catalogue():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
@@ -535,3 +559,4 @@ if __name__ == "__main__":
         port=80,
         debug=False
     )
+
