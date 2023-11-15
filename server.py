@@ -307,7 +307,7 @@ def update_user():
                 old_password = db["users"]["user-data"].find_one({"username":username})["password"]
 
                 if verify_password(old_value,old_password):
-                    db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":new_value}})
+                    db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":hash_password(new_value)}})
                 else:
                     json.dumps(
                         dict(message="Incorrect Old Password Provided",status_code=401)
