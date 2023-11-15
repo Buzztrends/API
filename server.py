@@ -320,9 +320,6 @@ def update_user():
     return json.dumps(
         dict(message="User data updated Successfully",status_code=200)
     )
-
-
-    return json.dumps(user)
 #===================================================
 #           Image Generation Route
 @auth_api_key
