@@ -346,7 +346,7 @@ def delete_user():
 #===================================================
 #           Image Generation Route
 
-@app.route("/image_generation/edenai")
+@app.route("/image_generation/edenai", method=["POST"])
 @auth_api_key
 def generate_image():
     # write the driver code here
