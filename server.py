@@ -242,7 +242,7 @@ def index_():
 #=================== USER ==========================
 
 @app.route("/user/register_user",methods=["POST"])
-@cross_origin
+
 @auth_api_key
 def register_user():
     data = request.get_json()
@@ -259,7 +259,6 @@ def register_user():
     return json.dumps(dict(message="User Registered Successfully",user=data["username"]))
 
 @app.route("/user/login_user",methods=["POST"])
-@cross_origin
 @auth_api_key
 def login_user():
     data = request.get_json()
@@ -275,12 +274,8 @@ def login_user():
         )
     return json.dumps(dict(message="User authentication Failed",status_code=401))
 
-<<<<<<< HEAD
-@app.route("/user/data",methods=["GET"])
-@cross_origin
-=======
+
 @app.route("/user/data",methods=["POST"])
->>>>>>> fba89e38db0130084a7107208d8bf45b0e9a66de
 @auth_api_key
 def get_user():
     # print(request.json())
@@ -294,7 +289,6 @@ def get_user():
     return user
 
 @app.route("/user/update_user",methods=["POST"])
-@cross_origin
 @auth_api_key
 def update_user():
     """
@@ -351,15 +345,9 @@ def delete_user():
         )
 #===================================================
 #           Image Generation Route
-<<<<<<< HEAD
 
 @app.route("/image_generation/edenai")
-@cross_origin
 @auth_api_key
-=======
-@auth_api_key
-@app.route("/image_generation/edenai",methods=["POST"])
->>>>>>> fba89e38db0130084a7107208d8bf45b0e9a66de
 def generate_image():
     # write the driver code here
     data = request.get_json()
@@ -386,7 +374,7 @@ def generate_image():
         
 
 #           Text Generation Route - Simple Generation
-@cross_origin
+
 @auth_api_key
 @app.route("/text_generation/simple_generation",methods=["POST"])
 def generate_post():
@@ -438,7 +426,7 @@ def generate_post():
     return json.dumps(out)
 
 #           Text Generation Route - Reference Post Generation
-@cross_origin
+
 @auth_api_key
 @app.route("/text_generation/reference_post_generation",methods=["POST"])
 def generate_reference_post():
@@ -491,7 +479,7 @@ def generate_reference_post():
     return json.dumps(out)
 
 #           Text Generation Route - Catelogue Generation
-@cross_origin
+
 @auth_api_key 
 @app.route("/text_generation/catelogue_generation",methods=["POST"])
 def generate_post_from_catalogue():
