@@ -419,7 +419,7 @@ def generate_post():
 
 #           Text Generation Route - Reference Post Generation
 @auth_api_key
-@app.route("/text_generation/reference_post_generation",methods="POST")
+@app.route("/text_generation/reference_post_generation",methods=["POST"])
 def generate_reference_post():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
