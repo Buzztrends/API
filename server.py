@@ -1,14 +1,30 @@
 #------------- SERVER IMPORTS-------------
 import os
+
+if not os.path.exists("./config/.env"):
+    # os.mkdir("./config/.env")
+    with open("./config/.env","w") as f:
+        f.write("")
+
+# environment setup
+with open("./config/.key", "r") as key_file:
+    keys = list(key_file)
+
+for item in keys:
+    variable, value = item.split("=")[0], "=".join(item.split("=")[1:])
+    os.environ[variable] = value.replace("\n", "")
+
+
 import json
 import base64
 import bcrypt
 from functools import wraps
 from flask import Flask, request
 from security.auth import hash_password,verify_password
-from security.utlis import is_user_valid
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
 from flask_pymongo import MongoClient
+from utils.utils import run_simple_query
+from security.utlis import *
 #------------- MODULES IMMPORTS-----------
 
 # Image Generation Module
@@ -21,21 +37,6 @@ from TextGeneration.ReferencePostGeneration import *
 
 # Moments Module
 from Moments.Moments import *
-#===========Config Setup==================
-
-
-
-if not os.path.exists("./config/.env"):
-    os.mkdir("./config")
-    with open("./config/.env","w") as f:
-        f.write("{}")
-
-if not os.path.exists("./config/users"):
-    os.mkdir("./config")
-    with open("./config/users","w") as f:
-        f.write("{}")
-
-#==================================================================================================
 
 #===========Models=========================
 
@@ -188,6 +189,8 @@ def register_api():
                 status_code=200
             )
         )  
+
+
 @app.route("/api/delete_api_user",methods=["POST"])
 @api_admin_action
 def delete_api_user():
@@ -230,7 +233,7 @@ def promote_api_user():
         )
 @app.route("/",methods=["GET"])
 def index_():
-    return "BuzzTrends API"
+    return json.dumps({"response": "BuzzTrends API, you found the correct link :D"})
 
 #=================== USER ==========================
 
@@ -264,102 +267,216 @@ def login_user():
         return json.dumps(
             dict(message="User Authenticated Successfully",status_code=200)
         )
-    return json.dumps(message="User authentication Failed",status_code=401)
+    return json.dumps(dict(message="User authentication Failed",status_code=401))
 
-@app.route("/user/update_user",methods=["POST"])
+@app.route("/user/data",methods=["GET"])
 @auth_api_key
-def update_user():
-    """
-    params: parameter_to_update
-            old_value
-            new_value
-    """
+def get_user():
+    # print(request.json())
     data = request.get_json()
-    username = data["username"]
-    parameter_to_update = data["parameter_to_update"]
-    old_value = data["old_value"]
-    new_value = data["new_value"]
-
-    if is_user_valid(username):
-    
-        if parameter_to_update == "password":
-            if old_value is None or old_value == "":
-                return json.dumps(
-                    dict(message="Old Password Cannot be None or empty",status_code=401)
-                )
-            else:
-                old_password = db["users"]["user-data"].find_one({"username":username})["password"]
-
-                if verify_password(old_value,old_password):
-                    db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":new_value}})
-                else:
-                    json.dumps(
-                        dict(message="Incorrect Old Password Provided",status_code=401)
-                    )
-                
-        else:
-            db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":new_value}})
-    else:
-        json.dumps(
-                        dict(message="Invalid User Provided",status_code=401)
-                    )
-    return json.dumps(
-        dict(message="User data updated Successfully",status_code=200)
-    )
-
+    user = find_company(data["company_id"])
+    if user == None:
+        return json.dumps(
+            dict(message="User Does not Exists",status_code=401)
+        )
 
 #===================================================
 #           Image Generation Route
 @auth_api_key
-@app.route("/image_generation")
+@app.route("/image_generation/edenai")
 def generate_image():
     # write the driver code here
-
-
-    urls = ["tempurl.url"]
-    return json.dumps(
-        dict(urls=urls)
-    )
+    data = request.get_json()
+    try: 
+        extras = data["extras"]
+    except ValueError:
+        json.dumps(
+            dict(message="Extras not available",status_code=401)
+        )
+    else:
+        output = run_simple_query(extras, """What is the text suggested for images only. Write your answer as text seperated by ||, eg <text 1>||<text 2>. Remove the 'images' title, I only want to retain the content""")
+        image_queries = output.split("||")
+        if not len(image_queries) > 1: 
+            image_queries = output.split(".")
+        print(image_queries)
+        images = []
+        for i, item in enumerate(image_queries):
+            images.append(generate_image_edenai(item, provider="stabilityai"))
+        return json.dumps(
+            dict(
+            images = images,
+            status_code = 200)
+        )
+        
 
 #           Text Generation Route - Simple Generation
 @auth_api_key
 @app.route("/text_generation/simple_generation")
 def generate_post():
-    # write the driver code here
+    data = request.get_json()
+    moment = data["moment"].split(" | ")[0]
+    company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
+    if not company_data:
+        return json.dumps(
+            dict(message="Invalid Company ID")
+        )
+    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
+    moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
 
-    post = "example post"
-    extras = ["example extras"]
-    return json.dumps(
-        dict(post=post,extras=extras)
-    )
+    moment_memory = VectorStoreRetrieverMemory(
+            retriever=moment_retriver,
+            input_key="moment_query"
+                            )
+    
+    
+
+    if data["custom_moment"] ==1:
+        out = generate_content(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            tone=data["tone"],
+            objective=data["objective"],
+            structure=data["structure"],
+            location=data["location"],
+            audience=data["audience"],
+            company_info=company_data["company_description"],
+            moment_memory=moment_memory,
+            model="gpt_4_high_temp"
+        )
+    else:
+        out = generate_content(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            tone=data["tone"],
+            objective=data["objective"],
+            structure=data["structure"],
+            location=data["location"],
+            audience=data["audience"],
+            company_info=company_data["company_description"],
+            moment_memory=moment_memory,
+            model="gpt_4_high_temp"
+        )
+    return json.dumps(out)
 
 #           Text Generation Route - Reference Post Generation
 @auth_api_key
 @app.route("/text_generation/reference_post_generation")
 def generate_reference_post():
-    # write the driver code here
+    data = request.get_json()
+    moment = data["moment"].split(" | ")[0]
+    company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
 
-    post = "example post"
-    extras = ["example extras"]
-    return json.dumps(
-        dict(post=post,extras=extras)
-    )
+
+    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
+
+    moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
+
+    moment_memory = VectorStoreRetrieverMemory(
+            retriever=moment_retriver,
+            input_key="moment_query"
+                            )
+    
+    
+    if not company_data:
+        return json.dumps(
+            dict(message="Invalid Company ID")
+        )
+
+    if data["custom_moment"] ==1:
+        out = generate_similar_content(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            objective=data["objective"],
+            location=data["location"],
+            audience=data["audience"],
+            ref_post=data["reference_post"],
+            company_info=company_data["company_description"],
+            moment_memory=moment_memory,
+            model="gpt_4_high_temp"
+        )
+    else:
+        out = generate_similar_content(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            objective=data["objective"],
+            location=data["location"],
+            audience=data["audience"],
+            ref_post=data["reference_post"],
+            company_info=company_data["company_description"],
+            moment_memory=moment_memory,
+            model="gpt_4_high_temp"
+        )
+    return json.dumps(out)
 
 #           Text Generation Route - Catelogue Generation
 @auth_api_key 
 @app.route("/text_generation/catelogue_generation")
 def generate_post_from_catalogue():
-    # write the driver code here
+    data = request.get_json()
+    moment = data["moment"].split(" | ")[0]
+    company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
+    
+    moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
 
-    post = "example post"
-    extras = ["example extras"]
-    return json.dumps(
-        dict(post=post,extras=extras)
-    )
+
+    moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
+
+    moment_memory = VectorStoreRetrieverMemory(
+            retriever=moment_retriver,
+            input_key="moment_query"
+            )
+    
+    
+    if not company_data:
+        return json.dumps(
+            dict(message="Invalid Company ID")
+        )
+
+    if data["custom_moment"] ==1:
+        out = generate_post_with_prod(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            tone=data["tone"],
+            objective=data["objective"],
+            structure=data["structure"],
+            location=data["location"],
+            audience=data["audience"],
+            company_info=company_data["company_description"],
+            moment_memory=moment_memory,
+            products = pd.read_csv(data["products"]),
+            product_names_col = data["product_names_col"],
+            product_name = data["product_name"],
+            ref_post = data["reference_post"],
+            model="gpt_4_high_temp"
+        )
+    else:
+        out = generate_post_with_prod(
+            company_name=company_data["company_name"],
+            moment=data["moment"],
+            content_type=data["content_type"],
+            tone=data["tone"],
+            objective=data["objective"],
+            structure=data["structure"],
+            location=data["location"],
+            audience=data["audience"],
+            company_info=company_data["company_description"],
+            moment_memory=moment_memory,
+            products = pd.read_csv(data["products"]),
+            product_names_col = data["product_names_col"],
+            product_name = data["product_name"],
+            ref_post = data["reference_post"],
+            model="gpt_4_high_temp"
+        )
+    return json.dumps(out)
 
 if __name__ == "__main__":
     app.run(
-        host="localhost",
-        port=8001,
+        host="0.0.0.0",
+        port=8000,
         debug=True
     )
