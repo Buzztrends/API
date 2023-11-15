@@ -321,6 +321,7 @@ def update_user():
         dict(message="User data updated Successfully",status_code=200)
     )
 
+
     return json.dumps(user)
 #===================================================
 #           Image Generation Route
