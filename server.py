@@ -280,6 +280,49 @@ def get_user():
             dict(message="User Does not Exists",status_code=401)
         )
 
+@app.route("/user/update_user",methods=["POST"])
+@auth_api_key
+def update_user():
+    """
+    params: parameter_to_update
+            old_value
+            new_value
+    """
+    data = request.get_json()
+    username = data["username"]
+    parameter_to_update = data["parameter_to_update"]
+    old_value = data["old_value"]
+    new_value = data["new_value"]
+
+    if is_user_valid(username):
+    
+        if parameter_to_update == "password":
+            if old_value is None or old_value == "":
+                return json.dumps(
+                    dict(message="Old Password Cannot be None or empty",status_code=401)
+                )
+            else:
+                old_password = db["users"]["user-data"].find_one({"username":username})["password"]
+
+                if verify_password(old_value,old_password):
+                    db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":new_value}})
+                else:
+                    json.dumps(
+                        dict(message="Incorrect Old Password Provided",status_code=401)
+                    )
+                
+        else:
+            db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":new_value}})
+    else:
+        json.dumps(
+                        dict(message="Invalid User Provided",status_code=401)
+                    )
+    return json.dumps(
+        dict(message="User data updated Successfully",status_code=200)
+    )
+
+=======
+    return json.dumps(user)
 #===================================================
 #           Image Generation Route
 @auth_api_key
