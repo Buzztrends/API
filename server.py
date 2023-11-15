@@ -314,7 +314,7 @@ def update_user():
                     )
                 
         else:
-            db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":new_value}})
+            db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":hash_password(new_value)}})
     else:
         json.dumps(
                         dict(message="Invalid User Provided",status_code=401)
