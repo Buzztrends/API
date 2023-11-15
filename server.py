@@ -533,6 +533,7 @@ def generate_post_from_catalogue():
 
 if __name__ == "__main__":
     app.run(
-        port=8001,
+        host="0.0.0.0"
+        port=80,
         debug=False
     )
