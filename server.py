@@ -279,6 +279,8 @@ def get_user():
         return json.dumps(
             dict(message="User Does not Exists",status_code=401)
         )
+    
+    return user
 
 @app.route("/user/update_user",methods=["POST"])
 @auth_api_key
