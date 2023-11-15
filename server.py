@@ -216,7 +216,7 @@ def list_api_users():
     json.dumps(
         dict(users=[x['user'] for x in resp],status_code=200)
     )
-@app.route("/api/promote_user",methods=["GET"])
+@app.route("/api/promote_user",methods=["POST"])
 def promote_api_user():
     global db
     user_data = request.get_json()
@@ -269,7 +269,7 @@ def login_user():
         )
     return json.dumps(dict(message="User authentication Failed",status_code=401))
 
-@app.route("/user/data",methods=["GET"])
+@app.route("/user/data",methods=["POST"])
 @auth_api_key
 def get_user():
     # print(request.json())
@@ -340,7 +340,7 @@ def delete_user():
 #===================================================
 #           Image Generation Route
 @auth_api_key
-@app.route("/image_generation/edenai")
+@app.route("/image_generation/edenai",methods=["POST"])
 def generate_image():
     # write the driver code here
     data = request.get_json()
@@ -368,7 +368,7 @@ def generate_image():
 
 #           Text Generation Route - Simple Generation
 @auth_api_key
-@app.route("/text_generation/simple_generation")
+@app.route("/text_generation/simple_generation",methods=["POST"])
 def generate_post():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
@@ -419,7 +419,7 @@ def generate_post():
 
 #           Text Generation Route - Reference Post Generation
 @auth_api_key
-@app.route("/text_generation/reference_post_generation")
+@app.route("/text_generation/reference_post_generation",methods="POST")
 def generate_reference_post():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
@@ -471,7 +471,7 @@ def generate_reference_post():
 
 #           Text Generation Route - Catelogue Generation
 @auth_api_key 
-@app.route("/text_generation/catelogue_generation")
+@app.route("/text_generation/catelogue_generation",methods=["POST"])
 def generate_post_from_catalogue():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
@@ -537,3 +537,4 @@ if __name__ == "__main__":
         port=80,
         debug=False
     )
+
