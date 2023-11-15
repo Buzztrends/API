@@ -307,14 +307,14 @@ def update_user():
                 old_password = db["users"]["user-data"].find_one({"username":username})["password"]
 
                 if verify_password(old_value,old_password):
-                    db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":new_value}})
+                    db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":hash_password(new_value)}})
                 else:
                     json.dumps(
                         dict(message="Incorrect Old Password Provided",status_code=401)
                     )
                 
         else:
-            db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":hash_password(new_value)}})
+            db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":(new_value)}})
     else:
         json.dumps(
                         dict(message="Invalid User Provided",status_code=401)
@@ -322,6 +322,21 @@ def update_user():
     return json.dumps(
         dict(message="User data updated Successfully",status_code=200)
     )
+
+@app.route("/user/delete_user",methods=["POST"])
+def delete_user():
+    data = request.get_json()
+    username = data["username"]
+    
+    if not is_user_valid(username):
+        return json.dumps(
+            dict(message="Invalid User Encountered",status_code=401)
+        )
+    else:
+        db["users"]["user-data"].delete_one({"username":username})
+        return json.dumps(
+            dict(message="User Deleted Successfully",status_code=200)
+        )
 #===================================================
 #           Image Generation Route
 @auth_api_key
@@ -518,7 +533,6 @@ def generate_post_from_catalogue():
 
 if __name__ == "__main__":
     app.run(
-        host="0.0.0.0",
-        port=80,
+        port=8001,
         debug=False
     )
