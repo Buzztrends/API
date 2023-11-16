@@ -14,12 +14,13 @@ for item in keys:
     variable, value = item.split("=")[0], "=".join(item.split("=")[1:])
     os.environ[variable] = value.replace("\n", "")
 
-
+import jwt
 import json
 import base64
 import bcrypt
 from functools import wraps
 from flask import Flask, request
+from datetime import datetime, timedelta
 from security.auth import hash_password,verify_password
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
 from flask_pymongo import MongoClient
@@ -47,7 +48,7 @@ from models import APIModel,User
 
 #==============App Setup==================
 app = Flask("BuzztrendsAPI")
-
+app.config["SECRET_KEY"]=os.environ["SECRET_KEY"]
 cors = CORS(app)
 
 db = MongoClient(os.environ["MONGO_URI"])
@@ -95,6 +96,32 @@ def api_admin_action(func):
                 return json.dumps(dict(message="User is not admin",status_code=401))
         return func()
     return decor 
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        # jwt is passed in the request header
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+            print("Token Captured:",token)
+        # return 401 if token is not passed
+        if not token:
+            return json.dumps({'message' : 'Token is missing !!'}), 401
+  
+        try:
+            # decoding the payload to fetch the stored details
+            data = jwt.decode(token, app.config['SECRET_KEY'],algorithms=["HS256"])
+            current_user = db["users"]["user-data"].find_one({"username":data["username"]})
+        except Exception as e:
+            print(e)
+            return json.dumps({
+                'message' : 'Token is invalid !!'
+            }), 401
+        # returns the current logged in users context to the routes
+        return  f(current_user,*args,**kwargs)
+  
+    return decorated
 
 def auth_api_key(func):
     @wraps(func)
@@ -269,17 +296,22 @@ def login_user():
     passw = data["password"]
     hashed_password = db["users"]["user-data"].find_one({"username":data["username"]})["password"]
     if verify_password(passw,hashed_password):
+        token = jwt.encode({
+            'username': data["username"],
+            'exp' : datetime.utcnow() + timedelta(minutes = 300)
+        }, app.config['SECRET_KEY'])
         return json.dumps(
-            dict(message="User Authenticated Successfully",status_code=200)
+            dict(message="User Authenticated Successfully",token=token,status_code=200)
         )
     return json.dumps(dict(message="User authentication Failed",status_code=401))
 
 
 @app.route("/user/data",methods=["POST"])
 @auth_api_key
-def get_user():
+@token_required
+def get_user(data):
     # print(request.json())
-    data = request.get_json()
+    # data = request.get_json()
     user = find_company(data["company_id"])
     if user == None:
         return json.dumps(
@@ -290,7 +322,8 @@ def get_user():
 
 @app.route("/user/update_user",methods=["POST"])
 @auth_api_key
-def update_user():
+@token_required
+def update_user(user):
     """
     params: parameter_to_update
             old_value
@@ -311,18 +344,20 @@ def update_user():
                 )
             else:
                 old_password = db["users"]["user-data"].find_one({"username":username})["password"]
-
-                if verify_password(old_value,old_password):
+                print(old_password)
+                verify = verify_password(old_value,old_password)
+                print("Verify Status:",verify)
+                if verify:
                     db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":hash_password(new_value)}})
                 else:
-                    json.dumps(
+                    return json.dumps(
                         dict(message="Incorrect Old Password Provided",status_code=401)
                     )
                 
         else:
             db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":(new_value)}})
     else:
-        json.dumps(
+        return json.dumps(
                         dict(message="Invalid User Provided",status_code=401)
                     )
     return json.dumps(
@@ -330,8 +365,9 @@ def update_user():
     )
 
 @app.route("/user/delete_user",methods=["POST"])
-def delete_user():
-    data = request.get_json()
+@token_required
+def delete_user(data):
+    # data = request.get_json()
     username = data["username"]
     
     if not is_user_valid(username):
