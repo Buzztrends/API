@@ -258,7 +258,7 @@ def register_user():
     print("Transaction Success")
     return json.dumps(dict(message="User Registered Successfully",user=data["username"]))
 
-@app.route("/user/login_user",methods=["POST"])
+@app.route("/user/authenticate",methods=["POST"])
 @auth_api_key
 def login_user():
     data = request.get_json()
