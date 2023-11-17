@@ -24,3 +24,4 @@ flask-pymongo==2.3.0
 chromadb==0.4.15
 flask-cors==4.0.0
 pyjwt==2.8.0
+gunicorn==21.2.0

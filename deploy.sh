@@ -1,2 +1,2 @@
 pip install -r requirements.txt
-python server.py
+gunicorn --bind "0.0.0.0:80" -w 4 "wgsi:app"
