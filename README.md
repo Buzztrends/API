@@ -222,7 +222,8 @@ https://<url>/text_generation/catelogue_generation
 ```
 {
     "posts": <string>,
-    "extras": <string>
+    "extras": <string>,
+    "remaining_generation":<int>
 }
 ```
 
@@ -315,6 +316,8 @@ https://<url>/user/save_state
 {
     "key": <key>,
     "company_id": <int>,
+    "company_name":<string>,
+    "username":<string>
     "moments": [<list of moments>]
 }
 ```

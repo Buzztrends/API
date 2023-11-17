@@ -46,6 +46,7 @@ class User(BaseModel):
     password           : str                        = Field(...)
     company_description: str                        = Field(...)
     content_category   : str                        = Field(...)
+    generation_available:int                        = 20
     moments            : Union[Moments,None]        = None
     saved_items        : Union[List[Moments],None,List] = []
     last_5_generations : Union[list[Post],None,List] = []

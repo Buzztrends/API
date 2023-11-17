@@ -280,6 +280,7 @@ def register_user():
     passw = data["password"]
     enc_password = hash_password(passw)
     data["password"] = enc_password
+    data["role"] = "non_admin"
     user_model = User(**data)
     db["users"]["user-data"].insert_one(user_model.model_dump())
     print("Transaction Success")
@@ -298,10 +299,11 @@ def login_user():
     if verify_password(passw,hashed_password):
         token = jwt.encode({
             'username': data["username"],
+            'role':data['role'],
             'exp' : datetime.utcnow() + timedelta(minutes = 300)
         }, app.config['SECRET_KEY'])
         return json.dumps(
-            dict(message="User Authenticated Successfully",token=token,status_code=200)
+            dict(message="User Authenticated Successfully",username=data["username"],company_name=db["users"]["user-data"].find_one({"username":data["username"]})["company_name"],company_id=db["users"]["user-data"].find_one({"username":data["username"]})["company_id"],token=token,status_code=200)
         )
     return json.dumps(dict(message="User authentication Failed",status_code=401))
 
@@ -386,6 +388,7 @@ def delete_user(data):
 @auth_api_key
 def generate_image():
     # write the driver code here
+    global db
     data = request.get_json()
     try: 
         extras = data["extras"]
@@ -414,6 +417,7 @@ def generate_image():
 @auth_api_key
 @app.route("/text_generation/simple_generation",methods=["POST"])
 def generate_post():
+    global db
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
     company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
@@ -421,6 +425,15 @@ def generate_post():
         return json.dumps(
             dict(message="Invalid Company ID")
         )
+    print("Company Generation Info:",company_data.get("generation_available"))
+    if company_data.get("generation_available") is None:
+        company_data =db["users"]["user-data"].update_one({"company_id":data["company_id"]},update={"$set":{'generation_available':20}})
+        print("\nUpdate Result \n",company_data)
+    elif company_data["generation_available"] == 0:
+        return json.dumps(
+            dict(message="You have exhausted your generation credits!")
+        )
+    print("Capturing Moments ...")
     moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
     moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
 
@@ -429,8 +442,7 @@ def generate_post():
             input_key="moment_query"
                             )
     
-    
-
+    print("Initializing Content Generation...")
     if data["custom_moment"] ==1:
         out = generate_content(
             company_name=company_data["company_name"],
@@ -459,7 +471,13 @@ def generate_post():
             moment_memory=moment_memory,
             model="gpt_4_high_temp"
         )
-    return json.dumps(out)
+    print("Content Successfully Generated!")
+    generation_available = company_data["generation_available"]
+    print("Updating User Credits...")
+    db["users"]["user-data"].find_one_and_update(filter={"company_id":data["company_id"]},update={"$set":{"generation_available":generation_available-1}})
+    out["remaining_generation"]=generation_available-1
+    print("User Credits Updated!")
+    return json.dumps(out),201
 
 #           Text Generation Route - Reference Post Generation
 
@@ -469,7 +487,10 @@ def generate_reference_post():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
     company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
-
+    if company_data["generation_available"] == 0:
+        return json.dumps(
+            dict(message="You have exhausted your generation credits!")
+        )
 
     moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
 
@@ -512,6 +533,9 @@ def generate_reference_post():
             moment_memory=moment_memory,
             model="gpt_4_high_temp"
         )
+    generation_available = company_data["generation_available"]
+    db["users"]["user-data"].find_one_and_update(filter={"company_id":data["company_id"]},update={"$setS":{"generation_available":generation_available-1}})
+    out["remaining_generation"]=generation_available-1
     return json.dumps(out)
 
 #           Text Generation Route - Catelogue Generation
@@ -522,7 +546,10 @@ def generate_post_from_catalogue():
     data = request.get_json()
     moment = data["moment"].split(" | ")[0]
     company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
-    
+    if company_data["generation_available"] == 0:
+        return json.dumps(
+            dict(message="You have exhausted your generation credits!")
+        )
     moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
 
 
@@ -575,12 +602,15 @@ def generate_post_from_catalogue():
             ref_post = data["reference_post"],
             model="gpt_4_high_temp"
         )
+    generation_available = company_data["generation_available"]
+    db["users"]["user-data"].find_one_and_update(filter={"company_id":data["company_id"]},update={"generation_available":generation_available-1})
+    out["remaining_generation"]=generation_available-1
     return json.dumps(out)
 
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=80,
-        debug=False
+        debug=True
     )
 
