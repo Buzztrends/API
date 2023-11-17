@@ -299,7 +299,6 @@ def login_user():
     if verify_password(passw,hashed_password):
         token = jwt.encode({
             'username': data["username"],
-            'role':data['role'],
             'exp' : datetime.utcnow() + timedelta(minutes = 300)
         }, app.config['SECRET_KEY'])
         return json.dumps(
@@ -431,8 +430,8 @@ def generate_post():
         print("\nUpdate Result \n",company_data)
     elif company_data["generation_available"] == 0:
         return json.dumps(
-            dict(message="You have exhausted your generation credits!")
-        )
+            dict(message="You have exhausted your generation credits!",status_code=403)
+        ),403
     print("Capturing Moments ...")
     moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
     moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
