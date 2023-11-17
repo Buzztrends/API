@@ -403,7 +403,7 @@ def generate_image():
         print(image_queries)
         images = []
         for i, item in enumerate(image_queries):
-            images.append(generate_image_edenai(item, provider="stabilityai"))
+            images.append(generate_image_edenai(item, provider="openai"))
         return json.dumps(
             dict(
             images = images,
