@@ -297,7 +297,6 @@ https://<url>/user/data
     "company_id": <int>,
     "company_name": <string>,
     "username": <string>,
-    "password": <hashed string>,
     "company_description": <string>,
     "content_category": <string>,
     "saved_items": [<list of moments>]
