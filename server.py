@@ -380,6 +380,11 @@ def delete_user(data):
         return json.dumps(
             dict(message="User Deleted Successfully",status_code=200)
         )
+    
+#=========== SAVE POST =============================
+@app.route("user/save_post",method=["POST"])
+def save_post():
+    pass
 #===================================================
 #           Image Generation Route
 
