@@ -405,8 +405,13 @@ def save_post(user):
     print("="*15,"\n",ans)
     return json.dumps({f"saved_posts":ans,"status_code":200,"status":"Success"})
 
+@app.route("/user/get_save_post",methods=["POST"])
+@auth_api_key
+@token_required
+def get_save_post(user):
+    return json.dumps(dict(save_posts=user['saved_post'],username=user['username']))
 #===================================================
-#           Image Generation Route
+#           Image Generation Roufte
 
 @app.route("/image_generation/edenai", methods=["POST"])
 @auth_api_key
