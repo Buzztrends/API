@@ -84,7 +84,10 @@ post data model:
         "raw_data":[{<date>:<int>}, ....], # use this to create a line chart
         "keywords":[<list of string>] # use this to embed the google trends chart (preffered)
     } or None, 
-    "hashtags": [{<hashtag>:<int>}, ...] or None # use this to create a sun chart
+    "hashtags": {
+        <hashtag>:<int>,
+        <hashtag>:<int>,
+        ...} or None # use this to create a sun chart
 }
 ```
 
@@ -92,7 +95,7 @@ post data model:
 
 * _"google_trends"_ is only returned in case of general news and industry news
 
-* _"hashtag"_ is only returned in case of social media
+* _"hashtags"_ is only returned in case of social media
 
 </b>
 
