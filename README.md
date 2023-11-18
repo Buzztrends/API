@@ -304,7 +304,7 @@ https://<url>/user/data
 }
 ```
 
-## User - Save Selected
+## User - Save Post
 
 * Path
 ```

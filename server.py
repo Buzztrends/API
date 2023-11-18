@@ -393,12 +393,12 @@ def save_post(user):
         post = data['post']
     except Exception as e:
         return json.dumps(dict(message="Invalid parameters found!",error=e,status="Failure",status_code=401)),401
-    user['saved_items'][state].append(post)
-    print("="*15,"\n",user['saved_items'])
-    db["users"]['user-data'].find_one_and_update({"company_id":user['company_id']},update={"$set":{f"saved_items.{state}":user['saved_items'][state]}})
-    ans = db["users"]['user-data'].find_one({"company_id":user['company_id']})['saved_items']
+    user['saved_posts'][state].append(post)
+    print("="*15,"\n",user['saved_posts'])
+    db["users"]['user-data'].find_one_and_update({"company_id":user['company_id']},update={"$set":{f"saved_posts.{state}":user['saved_posts'][state]}})
+    ans = db["users"]['user-data'].find_one({"company_id":user['company_id']})['saved_posts']
     print("="*15,"\n",ans)
-    return json.dumps({f"saved_items":ans,"status_code":200,"status":"Success"})
+    return json.dumps({f"saved_posts":ans,"status_code":200,"status":"Success"})
 
 #===================================================
 #           Image Generation Route
@@ -627,8 +627,9 @@ def generate_post_from_catalogue():
     return json.dumps(out)
 
 if __name__ == "__main__":
-    app.run(
+   app.run(
         host="0.0.0.0",
-        port=80,
-        debug=True
+        port=443,
+        debug=True,
+        ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
     )
