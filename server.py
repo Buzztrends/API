@@ -49,7 +49,7 @@ from models import APIModel,User
 #==============App Setup==================
 app = Flask("BuzztrendsAPI")
 app.config["SECRET_KEY"]=os.environ["SECRET_KEY"]
-cors = CORS(app, origins=["http://buzztrends-frontend.azurewebsites.net"])
+cors = CORS(app, origins=["https://buzztrends-frontend.azurewebsites.net"])
 
 db = MongoClient(os.environ["MONGO_URI"])
 #=========================================
@@ -288,6 +288,7 @@ def register_user():
 
 @app.route("/user/authenticate",methods=["POST"])
 @auth_api_key
+@cross_origin
 def login_user():
     data = request.get_json()
     if not is_user_valid(data["username"]):
