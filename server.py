@@ -611,6 +611,6 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         debug=True,
-        # ssl_context='adhoc'
+        ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
     )
 
