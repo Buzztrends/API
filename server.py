@@ -405,11 +405,36 @@ def save_post(user):
     print("="*15,"\n",ans)
     return json.dumps({f"saved_posts":ans,"status_code":200,"status":"Success"})
 
-@app.route("/user/get_save_post",methods=["POST"])
+@app.route("/user/get_save_post",methods=["GET"])
 @auth_api_key
 @token_required
 def get_save_post(user):
     return json.dumps(dict(save_posts=user['saved_post'],username=user['username']))
+#============= Save Topics==========================
+@app.route("/user/get_save_topic",methods=["GET"])
+@auth_api_key
+@token_required
+def get_save_topic(user):
+    return json.dumps(dict(save_topics=user['saved_topics'],username=user['username']))
+
+@app.route("/user/save_topic",methods=["POST"])
+@auth_api_key
+@token_required
+def save_topic(user):
+    data = request.get_json()
+    try:
+        post = data['moment']
+    except Exception as e:
+        return json.dumps(dict(message="Invalid parameters found!",error=e,status="Failure",status_code=401)),401
+    try:
+        user['saved_topics'].append(post)
+    except KeyError:
+        user["saved_topics"] = [post]
+    print("="*15,"\n",user['saved_topics'])
+    db["users"]['user-data'].find_one_and_update({"company_id":user['company_id']},update={"$set":{f"saved_topics":user['saved_topics']}})
+    ans = db["users"]['user-data'].find_one({"company_id":user['company_id']})['saved_topics']
+    print("="*15,"\n",ans)
+    return json.dumps({f"saved_topics":ans,"status_code":200,"status":"Success"})
 #===================================================
 #           Image Generation Roufte
 
