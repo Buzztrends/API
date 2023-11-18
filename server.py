@@ -49,7 +49,7 @@ from models import APIModel,User
 #==============App Setup==================
 app = Flask("BuzztrendsAPI")
 app.config["SECRET_KEY"]=os.environ["SECRET_KEY"]
-cors = CORS(app, origins=["https://buzztrends-frontend.azurewebsites.net"])
+cors = CORS(app)
 
 db = MongoClient(os.environ["MONGO_URI"])
 #=========================================
