@@ -288,7 +288,6 @@ def register_user():
 
 @app.route("/user/authenticate",methods=["POST"])
 @auth_api_key
-@cross_origin
 def login_user():
     data = request.get_json()
     if not is_user_valid(data["username"]):
