@@ -49,7 +49,8 @@ post data model:
 {
     "post_text": <string>,
     "extras": <string>,
-    "images": [<list of strings>]
+    "images": [<list of strings>],
+    "moment": [<list of moments>]
 }
 ```
 
@@ -303,28 +304,28 @@ https://<url>/user/data
 }
 ```
 
-## User - Save Selected
+## User - Save Post
 
 * Path
 ```
-https://<url>/user/save_state
+https://<url>/user/save_post
 ```
 
 * params
 ```
 {
     "key": <key>,
-    "company_id": <int>,
-    "company_name":<string>,
-    "username":<string>
-    "moments": [<list of moments>]
+    "state":<string>["under_review","reviewed","live"],
+    "post":<post datamodel>
 }
 ```
 
 * return
 ```
 {
-    "status": <"success" or "failed">
+    "status": <"Success" or Failure>,
+    if status == "Success" then "saved_items"
+    else if status == "Failure" then "message" 
 }
 ```
 

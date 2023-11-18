@@ -147,6 +147,7 @@ def auth_api_key(func):
             private_key = PrivateKey.load_pkcs1(private_key)
         try:
             userId = decrypt(decode_key,priv_key=private_key).decode()
+            print(userId)
         except Exception as e:
             print(e)
             return json.dumps({"message":"Invalid ID detected","status_code":401})
@@ -385,6 +386,25 @@ def delete_user(data):
         return json.dumps(
             dict(message="User Deleted Successfully",status_code=200)
         )
+    
+#=========== SAVE POST =============================
+@app.route("/user/save_post",methods=["POST"])
+@auth_api_key
+@token_required
+def save_post(user):
+    data = request.get_json()
+    try:
+        state = data["state"]
+        post = data['post']
+    except Exception as e:
+        return json.dumps(dict(message="Invalid parameters found!",error=e,status="Failure",status_code=401)),401
+    user['saved_posts'][state].append(post)
+    print("="*15,"\n",user['saved_posts'])
+    db["users"]['user-data'].find_one_and_update({"company_id":user['company_id']},update={"$set":{f"saved_posts.{state}":user['saved_posts'][state]}})
+    ans = db["users"]['user-data'].find_one({"company_id":user['company_id']})['saved_posts']
+    print("="*15,"\n",ans)
+    return json.dumps({f"saved_posts":ans,"status_code":200,"status":"Success"})
+
 #===================================================
 #           Image Generation Route
 
@@ -612,11 +632,8 @@ def generate_post_from_catalogue():
     return json.dumps(out)
 
 if __name__ == "__main__":
-    app.run(
+   app.run(
         host="0.0.0.0",
         port=443,
         debug=True,
         ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
-
-    )
-
