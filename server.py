@@ -127,7 +127,7 @@ def auth_api_key(func):
     @wraps(func)
     def decor(*args,**kwargs):
         global db
-
+        key= None
         if "api-key" in request.headers:
             key = (request.headers["api-key"])
             decode_key = base64.b64decode(key.encode("utf-8"))    
