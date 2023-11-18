@@ -392,13 +392,13 @@ def save_post(user):
         state = data["state"]
         post = data['post']
     except Exception as e:
-        return json.dumps(dict(message="Invalid parameters found!",error=e,status_code=401)),401
+        return json.dumps(dict(message="Invalid parameters found!",error=e,status="Failure",status_code=401)),401
     user['saved_items'][state].append(post)
     print("="*15,"\n",user['saved_items'])
     db["users"]['user-data'].find_one_and_update({"company_id":user['company_id']},update={"$set":{f"saved_items.{state}":user['saved_items'][state]}})
     ans = db["users"]['user-data'].find_one({"company_id":user['company_id']})['saved_items']
     print("="*15,"\n",ans)
-    return json.dumps({f"saved_items":ans})
+    return json.dumps({f"saved_items":ans,"status_code":200,"status":"Success"})
 
 #===================================================
 #           Image Generation Route

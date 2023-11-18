@@ -308,24 +308,24 @@ https://<url>/user/data
 
 * Path
 ```
-https://<url>/user/save_state
+https://<url>/user/save_post
 ```
 
 * params
 ```
 {
     "key": <key>,
-    "company_id": <int>,
-    "company_name":<string>,
-    "username":<string>
-    "moments": [<list of moments>]
+    "state":<string>["under_review","reviewed","live"],
+    "post":<post datamodel>
 }
 ```
 
 * return
 ```
 {
-    "status": <"success" or "failed">
+    "status": <"Success" or Failure>,
+    if status == "Success" then "saved_items"
+    else if status == "Failure" then "message" 
 }
 ```
 
