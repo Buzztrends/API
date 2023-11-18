@@ -49,7 +49,8 @@ post data model:
 {
     "post_text": <string>,
     "extras": <string>,
-    "images": [<list of strings>]
+    "images": [<list of strings>],
+    "moment": [<list of moments>]
 }
 ```
 
