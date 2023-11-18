@@ -21,5 +21,11 @@ def generate_image_edenai(prompt, provider="openai", dims="512x512"):
 
     response = requests.post(url, json=payload, headers=headers).json()
     print(response.keys())
-    print(response[provider]['items'][0].keys())
-    return response["stabilityai"]['items'][0]['image_resource_url']
+    try:
+        print(response[provider].keys())
+        img_url = response[provider]['items'][0]['image_resource_url']
+    except Exception as e:
+        print(e,"\n")
+        print(response[provider]['error'])
+        return ""
+    return img_url

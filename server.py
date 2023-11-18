@@ -19,7 +19,7 @@ import json
 import base64
 import bcrypt
 from functools import wraps
-from flask import Flask, request
+from flask import Flask, request, make_response, jsonify
 from datetime import datetime, timedelta
 from security.auth import hash_password,verify_password
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
@@ -49,7 +49,7 @@ from models import APIModel,User
 #==============App Setup==================
 app = Flask("BuzztrendsAPI")
 app.config["SECRET_KEY"]=os.environ["SECRET_KEY"]
-cors = CORS(app)
+cors = CORS(app, origins=["https://buzztrends-frontend.azurewebsites.net"])
 
 db = MongoClient(os.environ["MONGO_URI"])
 #=========================================
@@ -302,10 +302,15 @@ def login_user():
             'username': data["username"],
             'exp' : datetime.utcnow() + timedelta(minutes = 300)
         }, app.config['SECRET_KEY'])
-        return json.dumps(
-            dict(message="User Authenticated Successfully",username=data["username"],company_name=db["users"]["user-data"].find_one({"username":data["username"]})["company_name"],company_id=db["users"]["user-data"].find_one({"username":data["username"]})["company_id"],token=token,status_code=200)
-        )
-    return json.dumps(dict(message="User authentication Failed",status_code=401))
+
+        response = jsonify(dict(message="User Authenticated Successfully",username=data["username"],company_name=db["users"]["user-data"].find_one({"username":data["username"]})["company_name"],company_id=db["users"]["user-data"].find_one({"username":data["username"]})["company_id"],token=token,status_code=200))
+        
+    else:
+        response = json.dumps(dict(message="User authentication Failed",status_code=401))
+
+    response.headers.add('Access-Control-Allow-Origin', '*')
+
+    return response
 
 
 @app.route("/user/data",methods=["POST"])
@@ -423,7 +428,7 @@ def generate_image():
         print(image_queries)
         images = []
         for i, item in enumerate(image_queries):
-            images.append(generate_image_edenai(item, provider="stabilityai"))
+            images.append(generate_image_edenai(item, provider="openai"))
         return json.dumps(
             dict(
             images = images,
@@ -632,4 +637,3 @@ if __name__ == "__main__":
         port=443,
         debug=True,
         ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
-    )

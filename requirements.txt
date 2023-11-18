@@ -25,3 +25,4 @@ chromadb==0.4.15
 flask-cors==4.0.0
 pyjwt==2.8.0
 gunicorn==21.2.0
+pyopenssl==23.3.0
