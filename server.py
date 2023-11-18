@@ -147,6 +147,7 @@ def auth_api_key(func):
             private_key = PrivateKey.load_pkcs1(private_key)
         try:
             userId = decrypt(decode_key,priv_key=private_key).decode()
+            print(userId)
         except Exception as e:
             print(e)
             return json.dumps({"message":"Invalid ID detected","status_code":401})
@@ -382,9 +383,23 @@ def delete_user(data):
         )
     
 #=========== SAVE POST =============================
-@app.route("user/save_post",method=["POST"])
-def save_post():
-    pass
+@app.route("/user/save_post",methods=["POST"])
+@auth_api_key
+@token_required
+def save_post(user):
+    data = request.get_json()
+    try:
+        state = data["state"]
+        post = data['post']
+    except Exception as e:
+        return json.dumps(dict(message="Invalid parameters found!",error=e,status_code=401)),401
+    user['saved_items'][state].append(post)
+    print("="*15,"\n",user['saved_items'])
+    db["users"]['user-data'].find_one_and_update({"company_id":user['company_id']},update={"$set":{f"saved_items.{state}":user['saved_items'][state]}})
+    ans = db["users"]['user-data'].find_one({"company_id":user['company_id']})['saved_items']
+    print("="*15,"\n",ans)
+    return json.dumps({f"saved_items":ans})
+
 #===================================================
 #           Image Generation Route
 
