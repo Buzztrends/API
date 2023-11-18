@@ -49,7 +49,7 @@ from models import APIModel,User
 #==============App Setup==================
 app = Flask("BuzztrendsAPI")
 app.config["SECRET_KEY"]=os.environ["SECRET_KEY"]
-cors = CORS(app, supports_credentials=True, origins=["http://buzztrends-frontend.azurewebsites.net"])
+cors = CORS(app, origins=["http://buzztrends-frontend.azurewebsites.net"])
 
 db = MongoClient(os.environ["MONGO_URI"])
 #=========================================
@@ -609,8 +609,8 @@ def generate_post_from_catalogue():
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
-        port=443,
+        port=8080,
         debug=True,
-        ssl_context='adhoc'
+        # ssl_context='adhoc'
     )
 
