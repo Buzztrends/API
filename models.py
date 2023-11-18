@@ -48,7 +48,7 @@ class User(BaseModel):
     content_category   : str                        = Field(...)
     generation_available:int                        = 20
     moments            : Union[Moments,None]        = None
-    saved_items        : Union[List[Moments],None,List] = []
+    saved_items        : Union[dict[str,List],None] = {'under_review':[],'reviewed':[],'live':[]}
     last_5_generations : Union[list[Post],None,List] = []
 
     model_config = ConfigDict(title='Main')
