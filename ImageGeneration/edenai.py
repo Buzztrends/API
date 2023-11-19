@@ -49,9 +49,11 @@ def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
     global gpt_3_5
     url = "https://api.edenai.run/v2/image/generation"
     image_gen_prompt = """
-    [System]: You're an AI that narrate the scence to click the marketing picture for the given requirements, keep the prompt limited to 300 characters. If The information discuss about humans or living beings, always make 2D digital arts. Do not use any textual data to write on image.
+    [System]: You're an AI that narrate the scence to click the marketing picture for the given requirements, keep the prompt limited to 300 characters. If The information discuss about humans or living beings, always make 2D digital arts.
+    [System]:  Do not write any textual data on image.
     [User]: Write in detail about the scence to click a picture for the given picture.
     {picture_info}
+    No Text
 """
     image_gen_prompt_template = PromptTemplate(input_variables=["picture_info"],template=image_gen_prompt)
     content_gen_chain = LLMChain(llm=gpt_3_5, prompt=image_gen_prompt_template, output_key="scence detail")
