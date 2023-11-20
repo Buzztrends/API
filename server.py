@@ -473,6 +473,25 @@ def generate_image():
 def generate_post():
     global db
     data = request.get_json()
+    if data.get("company_id",-1) == -1:
+        return json.dumps(dict(message="Provide the compant ID",status_code=403)),403
+    if data.get("moment",-1) == -1:
+        data["moment"]=""
+    if data.get("content_type",-1) == -1:
+        data["content_type"]=""
+    if data.get("tone",-1) == -1:
+        data["tone"]=""
+    if data.get("objective",-1) == -1:
+        data["objective"]=""
+    if data.get("structure",-1) == -1:
+        data["structure"]=""
+    if data.get("location",-1) == -1:
+        data["location"]=""
+    if data.get("audience",-1) == -1:
+        data["audience"]=""
+    if data.get("custom_moment",-1) == -1:
+        data["custom_moment"]=1
+    print(data)
     moment = data["moment"].split(" | ")[0]
     company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
     if not company_data:
@@ -664,7 +683,7 @@ def generate_post_from_catalogue():
 if __name__ == "__main__":
    app.run(
         host="0.0.0.0",
-        port=443,
+        port=5000,
         debug=True,
-        ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
+        # ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
    )
