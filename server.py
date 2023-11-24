@@ -476,7 +476,7 @@ def generate_post():
     if data.get("company_id",-1) == -1:
         return json.dumps(dict(message="Provide the compant ID",status_code=403)),403
     if data.get("moment",-1) == -1:
-        data["moment"]=""
+        data["moment"]="Write about the company and its product."
     if data.get("content_type",-1) == -1:
         data["content_type"]=""
     if data.get("tone",-1) == -1:
@@ -486,9 +486,9 @@ def generate_post():
     if data.get("structure",-1) == -1:
         data["structure"]=""
     if data.get("location",-1) == -1:
-        data["location"]=""
+        data["location"]=" for general people from anywhere"
     if data.get("audience",-1) == -1:
-        data["audience"]=""
+        data["audience"]=" for everyone across the world"
     if data.get("custom_moment",-1) == -1:
         data["custom_moment"]=1
     print(data)
