@@ -60,7 +60,7 @@ def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
     chain_out  = content_gen_chain({"picture_info":prompt})["scence detail"]
     print(chain_out)
     print("Chain Output\n====================\n")
-    opt_prompt = index.query(f"Write a prompt in 550 characters to create a picutre for the current scene. Tell the camera angle, lighting, color composition, picture styles and other important details. Make sure the characters are no more than 550.{chain_out}",llm=gpt_3_5)
+    opt_prompt = index.query(f"Write a prompt in 500 characters to create a picutre for the current scene. Tell the camera angle, lighting, color composition, picture styles and other important details. Make sure the characters are no more than 550.{chain_out}",llm=gpt_3_5)
     print(opt_prompt)
     payload = {
         "response_as_dict": True,
