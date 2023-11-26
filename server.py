@@ -469,6 +469,11 @@ def generate_image():
 #           Text Generation Route - Simple Generation
 
 @auth_api_key
+@token_required
+def create_prompt():
+
+    pass
+@auth_api_key
 @app.route("/text_generation/simple_generation",methods=["POST"])
 def generate_post():
     global db
@@ -557,7 +562,27 @@ def generate_post():
 @auth_api_key
 @app.route("/text_generation/reference_post_generation",methods=["POST"])
 def generate_reference_post():
+    global db
     data = request.get_json()
+    if data.get("company_id",-1) == -1:
+        return json.dumps(dict(message="Provide the compant ID",status_code=403)),403
+    if data.get("moment",-1) == -1:
+        data["moment"]=""
+    if data.get("content_type",-1) == -1:
+        data["content_type"]=""
+    if data.get("tone",-1) == -1:
+        data["tone"]=""
+    if data.get("objective",-1) == -1:
+        data["objective"]=""
+    if data.get("structure",-1) == -1:
+        data["structure"]=""
+    if data.get("location",-1) == -1:
+        data["location"]=""
+    if data.get("audience",-1) == -1:
+        data["audience"]=""
+    if data.get("custom_moment",-1) == -1:
+        data["custom_moment"]=1
+    print(data)
     moment = data["moment"].split(" | ")[0]
     company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
     if company_data["generation_available"] == 0:
@@ -607,7 +632,7 @@ def generate_reference_post():
             model="gpt_4_high_temp"
         )
     generation_available = company_data["generation_available"]
-    db["users"]["user-data"].find_one_and_update(filter={"company_id":data["company_id"]},update={"$setS":{"generation_available":generation_available-1}})
+    db["users"]["user-data"].find_one_and_update(filter={"company_id":data["company_id"]},update={"$set":{"generation_available":generation_available-1}})
     out["remaining_generation"]=generation_available-1
     return json.dumps(out)
 
@@ -683,7 +708,7 @@ def generate_post_from_catalogue():
 if __name__ == "__main__":
    app.run(
         host="0.0.0.0",
-        port=443,
+        port=5000,
         debug=True,
-        ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
+        # ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
    )
