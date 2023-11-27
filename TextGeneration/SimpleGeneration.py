@@ -1,4 +1,4 @@
-from .indexes import index
+
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
 
