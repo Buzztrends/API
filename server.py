@@ -458,7 +458,7 @@ def generate_image():
         print(image_queries)
         images = []
         for i, item in enumerate(image_queries[:4]):
-            images.append(generate_image_edenai_2(item, provider="replicate"))
+            images.append(generate_image_edenai_2(item, provider="stabilityai"))
         return json.dumps(
             dict(
             images = images,
