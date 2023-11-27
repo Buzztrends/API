@@ -87,6 +87,19 @@ Information about {moment_query}:
         "content_type": content_type
     })
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 def generate_content_2(
     company_name: str,
     moment: str,
