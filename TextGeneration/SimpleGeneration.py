@@ -27,12 +27,11 @@ def generate_content(
     # llm = OpenAI(model_name="gpt-3.5-turbo-16k", temperature=0.5)
     print("using ", model)
     llm = get_llm(model, 0.5)
-
+    
+    # =================== MOMENT EXTRACTOR CHAIN ==========
     moment_query = f"Tell me in detail about {moment}"
     relevant_docs = moment_retriver.get_relevant_documents(moment_query)
     moment_context = "\n".join([item.page_content.replace("\n", " ") for item in relevant_docs])
-
-    # NEW STUFF
     moment_query_template = """Given the following context, i want you to answer this query: {moment_query}
 
     {moment_context}

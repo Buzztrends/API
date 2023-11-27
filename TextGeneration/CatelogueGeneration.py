@@ -11,7 +11,7 @@ def generate_post_with_prod(company_name: str,
     location: str,
     audience: str,
     company_info,
-    moment_memory,
+    moment_retriver,
     products:pd.DataFrame,
     product_names_col:str,
     product_name:str,
@@ -34,7 +34,7 @@ def generate_post_with_prod(company_name: str,
                         location,
                         audience,
                         company_info,
-                        moment_memory,
+                        moment_retriver,
                         model="gpt_4_high_temp"
                     )
     else:
@@ -45,7 +45,7 @@ def generate_post_with_prod(company_name: str,
                 location,
                 audience,
                 company_info,
-                moment_memory,
+                moment_retriver,
                 ref_post,
                 model="gpt_4_high_temp"
             )
