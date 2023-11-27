@@ -1,5 +1,6 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
+from langchain.vectorstores.base import VectorStoreRetriever
 
 from utils.utils import get_llm
 
@@ -9,8 +10,8 @@ def generate_similar_content(company_name: str,
     objective: str,
     location: str,
     audience: str,
-    company_info,
-    moment_memory,
+    company_info: str,
+    moment_retriver: VectorStoreRetriever,
     ref_post:str,
     model="gpt_3_5_chat"):
     llm = get_llm(model, 0.2)
@@ -22,9 +23,15 @@ def generate_similar_content(company_name: str,
     if audience == "":
         audience = "to everyone"
     # =================== MOMENT EXTRACTOR CHAIN ==========
-    moment_query_template = "Tell me about {moment_query}. How is it relevant, significant, and important?"
-    moment_prompt = PromptTemplate(input_variables=["moment_query"], template=moment_query_template)
-    moment_chain = LLMChain(llm=llm, prompt=moment_prompt, memory=moment_memory, output_key="moment_info")
+    moment_query = f"Tell me in detail about {moment}"
+    relevant_docs = moment_retriver.get_relevant_documents(moment_query)
+    moment_context = "\n".join([item.page_content.replace("\n", " ") for item in relevant_docs])
+    moment_query_template = """Given the following context, i want you to answer this query: {moment_query}
+
+    {moment_context}
+    """
+    moment_prompt = PromptTemplate(input_variables=["moment_query", "moment_context"], template=moment_query_template)
+    moment_chain = LLMChain(llm=get_llm("gpt_3_5_chat"), prompt=moment_prompt, output_key="moment_info")
     
     # =================== TONALITY CHAIN ==================
     # tonality_post_prompt = """
@@ -56,7 +63,7 @@ def generate_similar_content(company_name: str,
     final_chain = SequentialChain(
         # chains=[moment_chain, tonality_post_chain, content_gen_chain],
         chains=[moment_chain, content_gen_chain,extras_gen_chain],
-        input_variables=["company_name", "company_info", "location", "audience", "moment_query", "objective", "content_type","ref_post"],
+        input_variables=["company_name", "company_info", "location", "audience", "moment_query", "moment_context", "objective", "content_type","ref_post"],
         output_variables=["post","extras"],
         verbose=True
     )
@@ -64,6 +71,7 @@ def generate_similar_content(company_name: str,
         "company_name": company_name,
         "company_info": company_info,
         "moment_query": moment,
+        "moment_context": moment_context,
         "objective": objective,
         "location": location,
         "audience": audience,

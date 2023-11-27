@@ -532,7 +532,7 @@ def generate_post():
             location=data["location"],
             audience=data["audience"],
             company_info=company_data["company_description"],
-            moment_memory=moment_memory,
+            moment_retriver=moment_retriver,
             model="gpt_4_high_temp"
         )
     else:
@@ -546,7 +546,7 @@ def generate_post():
             location=data["location"],
             audience=data["audience"],
             company_info=company_data["company_description"],
-            moment_memory=moment_memory,
+            moment_retriver=moment_retriver,
             model="gpt_4_high_temp"
         )
     print("Content Successfully Generated!")
@@ -594,11 +594,6 @@ def generate_reference_post():
 
     moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
 
-    moment_memory = VectorStoreRetrieverMemory(
-            retriever=moment_retriver,
-            input_key="moment_query"
-                            )
-    
     
     if not company_data:
         return json.dumps(
@@ -615,7 +610,7 @@ def generate_reference_post():
             audience=data["audience"],
             ref_post=data["reference_post"],
             company_info=company_data["company_description"],
-            moment_memory=moment_memory,
+            moment_retriver=moment_retriver,
             model="gpt_4_high_temp"
         )
     else:
@@ -628,7 +623,7 @@ def generate_reference_post():
             audience=data["audience"],
             ref_post=data["reference_post"],
             company_info=company_data["company_description"],
-            moment_memory=moment_memory,
+            moment_retriver=moment_retriver,
             model="gpt_4_high_temp"
         )
     generation_available = company_data["generation_available"]
@@ -653,11 +648,6 @@ def generate_post_from_catalogue():
 
     moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
 
-    moment_memory = VectorStoreRetrieverMemory(
-            retriever=moment_retriver,
-            input_key="moment_query"
-            )
-    
     
     if not company_data:
         return json.dumps(
@@ -675,7 +665,7 @@ def generate_post_from_catalogue():
             location=data["location"],
             audience=data["audience"],
             company_info=company_data["company_description"],
-            moment_memory=moment_memory,
+            moment_retriver=moment_retriver,
             products = pd.read_csv(data["products"]),
             product_names_col = data["product_names_col"],
             product_name = data["product_name"],
@@ -693,7 +683,7 @@ def generate_post_from_catalogue():
             location=data["location"],
             audience=data["audience"],
             company_info=company_data["company_description"],
-            moment_memory=moment_memory,
+            moment_retriver=moment_retriver,
             products = pd.read_csv(data["products"]),
             product_names_col = data["product_names_col"],
             product_name = data["product_name"],
