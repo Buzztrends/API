@@ -49,7 +49,7 @@ def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
     global gpt_3_5
     url = "https://api.edenai.run/v2/image/generation"
     image_gen_prompt = """
-    [System]: You're an AI that narrate the scence to click the marketing picture for the given requirements, keep the prompt limited to 300 characters. If The information discuss about humans or living beings, always make 2D digital arts.
+    [System]: You're an AI that narrate the scence to click the marketing picture for the given requirements, keep the prompt limited to 350 characters. If The information discuss about humans or living beings, always make 2D digital arts with illustrative humans and create an illustration.
     [System]:  Do not write any textual data on image.
     [User]: Write in detail about the scence to click a picture for the given picture.
     {picture_info}
@@ -59,7 +59,8 @@ def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
     content_gen_chain = LLMChain(llm=gpt_3_5, prompt=image_gen_prompt_template, output_key="scence detail")
     chain_out  = content_gen_chain({"picture_info":prompt})["scence detail"]
     print(chain_out)
-    opt_prompt = index.query(f"Write a prompt in 250 characters to create an illustration for the current scene.{chain_out}",llm=gpt_3_5)
+    print("Chain Output\n====================\n")
+    opt_prompt = index.query(f"Write a prompt in 500 characters to create a picutre for the current scene. Tell the camera angle, lighting, color composition, picture styles and other important details. Make sure the characters are no more than 550.{chain_out}",llm=gpt_3_5)
     print(opt_prompt)
     payload = {
         "response_as_dict": True,
@@ -68,7 +69,7 @@ def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
         "resolution": dims,
         "num_images": 1,
         "providers": provider,
-        "text": opt_prompt
+        "text": opt_prompt+"\nNo text on image."
     }
     headers = {
         "accept": "application/json",
@@ -78,6 +79,8 @@ def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
 
     response = requests.post(url, json=payload, headers=headers).json()
     print(response.keys())
+    if response.get("error",-1) !=-1:
+        return response
     try:
         print(response[provider].keys())
         img_url = response[provider]['items'][0]['image_resource_url']
