@@ -522,7 +522,7 @@ def generate_post():
     
     print("Initializing Content Generation...")
     if data.get("similar_content",-1) ==-1 or data.get("similar_content",-1) =='':
-        out = generate_content(
+        out = generate_content_2(
             company_name=company_data["company_name"],
             moment=data["moment"],
             content_type=data["content_type"],
