@@ -67,7 +67,7 @@ def generate_similar_content(company_name: str,
         output_variables=["post","extras"],
         verbose=True
     )
-    return final_chain({
+    out = final_chain({
         "company_name": company_name,
         "company_info": company_info,
         "moment_query": moment,
@@ -78,3 +78,4 @@ def generate_similar_content(company_name: str,
         "content_type": content_type,
         "ref_post": ref_post
     })
+    return {"post":out["post"],"extras":out["extras"]} 

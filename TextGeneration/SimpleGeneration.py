@@ -88,8 +88,7 @@ Information about {moment_query}:
         output_variables=["post", "extras"],
         verbose=True
     )
-
-    return final_chain({
+    out = final_chain({
         "company_name": company_name,
         "company_info": company_info,
         "moment_query": moment,
@@ -101,6 +100,7 @@ Information about {moment_query}:
         "audience": audience,
         "content_type": content_type
     })
+    return {"post":out["post"],"extras":out["extras"]}
 
 def generate_content_2(
     company_name: str,
@@ -112,7 +112,7 @@ def generate_content_2(
     location: str,
     audience: str,
     company_info,
-    moment_memory,
+    moment_retriver,
     model="gpt_3_5_chat"
 ): 
     llm = get_llm(model, 0.5)
@@ -125,11 +125,20 @@ def generate_content_2(
     # llm = OpenAI(model_name="gpt-3.5-turbo-16k", temperature=0.5)
     print("using ", model)
     # llm = AzureOpenAI(deployment_name="buzztrends-gpt35",model_name="gpt-35-turbo",openai_api_key=AZURE_OPENAI_KEY,openai_api_base=OPENAI_API_BASE,openai_api_version=OPENAI_API_VERSION,temperature=0.7,top_p=0.95)
+    moment_query = f"Tell me in detail about {moment}"
+    relevant_docs = moment_retriver.get_relevant_documents(moment_query)
+    moment_context = "\n".join([item.page_content.replace("\n", " ") for item in relevant_docs])
+    moment_query_template = """Given the following context, i want you to answer this query: {moment_query}
 
-    moment_query_template = "Tell me about {moment_query}. How is it relevant, significant, and important?"
-    moment_prompt = PromptTemplate(input_variables=["moment_query"], template=moment_query_template)
-    moment_chain = LLMChain(llm=llm, prompt=moment_prompt, memory=moment_memory, output_key="moment_info")
-    moment_chain_out= moment_chain({"moment_query":moment})
+    {moment_context}
+    """
+    moment_prompt = PromptTemplate(input_variables=["moment_query", "moment_context"], template=moment_query_template)
+    moment_chain = LLMChain(llm=get_llm("gpt_3_5_chat"), prompt=moment_prompt, output_key="moment_info")
+
+    # moment_query_template = "Tell me about {moment_query}. How is it relevant, significant, and important?"
+    # moment_prompt = PromptTemplate(input_variables=["moment_query"], template=moment_query_template)
+    # moment_chain = LLMChain(llm=llm, prompt=moment_prompt, memory=moment_memory, output_key="moment_info")
+    moment_chain_out= moment_chain({"moment_query":moment,"moment_context":moment_context})
     message_text = [
   {"role":"system","content":"You are an assistant that helps the master to create  the prompts that are further used to generate posts. You use words that carry much more information and good at finding interesting information that are good for marketing"},{"role":"user",
    "content":"""
@@ -202,8 +211,7 @@ Format the output as "Prompt":<Prompt>
         output_variables=["post", "extras"],
         verbose=True
     )
-
-    return final_chain({
+    out = final_chain({
         "opt_prompt":completion.choices[0]["message"]["content"],
         "company_name": company_name,
         "company_info": company_info,
@@ -216,6 +224,7 @@ Format the output as "Prompt":<Prompt>
         "content_type": content_type,
 
     })
+    return {"post":out["post"],"extras":out["extras"]}
 
 if __name__ == '__main__':
     pass

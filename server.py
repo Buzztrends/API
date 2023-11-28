@@ -521,7 +521,7 @@ def generate_post():
                             )
     
     print("Initializing Content Generation...")
-    if data["custom_moment"] ==1:
+    if data.get("similar_content",-1) ==-1 or data.get("similar_content",-1) =='':
         out = generate_content(
             company_name=company_data["company_name"],
             moment=data["moment"],
@@ -536,15 +536,15 @@ def generate_post():
             model="gpt_4_high_temp"
         )
     else:
-        out = generate_content(
+        print("Similar Content Triggered")
+        out = generate_similar_content(
             company_name=company_data["company_name"],
             moment=data["moment"],
             content_type=data["content_type"],
-            tone=data["tone"],
             objective=data["objective"],
-            structure=data["structure"],
             location=data["location"],
             audience=data["audience"],
+            ref_post=data["similar_content"],
             company_info=company_data["company_description"],
             moment_retriver=moment_retriver,
             model="gpt_4_high_temp"
