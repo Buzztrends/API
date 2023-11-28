@@ -45,7 +45,10 @@ from Moments.Moments import *
 from models import APIModel,User
 
 #==========================================
-
+print("Loading Guidelines...")
+with open("./utils/guidelines.json") as f:
+    guidelines = json.load(f)
+print("Guidelines Loaded")
 #==============App Setup==================
 app = Flask("BuzztrendsAPI")
 app.config["SECRET_KEY"]=os.environ["SECRET_KEY"]
@@ -477,6 +480,7 @@ def create_prompt():
 @app.route("/text_generation/simple_generation",methods=["POST"])
 def generate_post():
     global db
+    global guidelines
     data = request.get_json()
     if data.get("company_id",-1) == -1:
         return json.dumps(dict(message="Provide the compant ID",status_code=403)),403
@@ -485,11 +489,11 @@ def generate_post():
     if data.get("content_type",-1) == -1:
         data["content_type"]=""
     if data.get("tone",-1) == -1:
-        data["tone"]=""
+        data["tone"]=guidelines[data["content_type"]]["tone"]
     if data.get("objective",-1) == -1:
         data["objective"]=""
     if data.get("structure",-1) == -1:
-        data["structure"]=""
+        data["structure"]=guidelines[data["content_type"]]["structure"]
     if data.get("location",-1) == -1:
         data["location"]=" for general people from anywhere"
     if data.get("audience",-1) == -1:
@@ -533,7 +537,8 @@ def generate_post():
             audience=data["audience"],
             company_info=company_data["company_description"],
             moment_retriver=moment_retriver,
-            model="gpt_4_high_temp"
+            model="gpt_4_high_temp",
+            extras_guidelines = guidelines[data["content_type"]]["extras"]
         )
     else:
         print("Similar Content Triggered")
@@ -547,7 +552,8 @@ def generate_post():
             ref_post=data["similar_content"],
             company_info=company_data["company_description"],
             moment_retriver=moment_retriver,
-            model="gpt_4_high_temp"
+            model="gpt_4_high_temp",
+            extras_guidelines = guidelines[data["content_type"]]["extras"]
         )
     print("Content Successfully Generated!")
     generation_available = company_data["generation_available"]

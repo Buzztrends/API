@@ -113,7 +113,8 @@ def generate_content_2(
     audience: str,
     company_info,
     moment_retriver,
-    model="gpt_3_5_chat"
+    extras_guidelines:str,
+    model="gpt_3_5_chat",
 ): 
     llm = get_llm(model, 0.5)
     if location == "":
@@ -201,7 +202,7 @@ Format the output as "Prompt":<Prompt>
 
     generator_template = """Given this post text for a {content_type}: {post}
 
-    Tell me what other things can be put in the post. Include description of images, videos, audio, hashtags, etc. as lists, only include elements that are relevant to a {content_type}"""
+    Tell me what other things can be put in the post. Include description of images, videos, audio, hashtags, etc. as lists, only include elements that are relevant to a {content_type}."""+extras_guidelines
     generator_prompt = PromptTemplate(input_variables=["post", "content_type"], template=generator_template)
     generator_chain = LLMChain(llm=llm, prompt=generator_prompt, output_key="extras")
 

@@ -1,0 +1,32 @@
+{
+    "instagram_post": {
+        "tone": "casual",
+        "structure": "content size:138 to 150 characters.Ideal characters: 50.",
+        "extras": "Hashtags: 3 to 5 less than 23 characters, Image required: Yes"
+    },
+    "linkedin post": {
+        "tone": "formal",
+        "structure": "content size:150 to 200 characters.Ideal characters: 100.",
+        "extras": "Hashtags: 3 to 5 less than 23 characters, Image required: Maybe"
+    },
+    "twitter post": {
+        "tone": "informative",
+        "structure": "content size:no specific.Ideal characters: 70 to 80.",
+        "extras": "Hashtags: 3 to 5 less than 23 characters, Image required: Maybe"
+    },
+    "facebook post": {
+        "tone": "informative",
+        "structure": "content size:30 to 60 seconds read time.Headline:40 characters. Body text: 125 characters.",
+        "extras": "Hashtags: 3 to 5 less than 23 characters, Image required: Yes"
+    },
+    "email post":{
+        "tone":"informative",
+        "structure":"content size:50 to 125 words.Ideal characters: 100.",
+        "extras":"Hashtags: as much necessary, Image required: Maybe"    
+    },
+    "whatsapp post":{
+        "tone":"informative",
+        "structure":"content size:400 or less characters,characters ideal: 300 to 500,",
+        "extras":"Hashtags: requried maybe, Image required: Maybe"    
+    }
+}
