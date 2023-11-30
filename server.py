@@ -727,7 +727,7 @@ def get_products(user)->json :
             dict(products={},status_code=200)
         )
     else:
-        return json.dumps(dict(products=user["products"],status_code=200))
+        return json.dumps(dict(products=list(user["products"].keys()),status_code=200))
     
 
 if __name__ == "__main__":
