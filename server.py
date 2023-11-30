@@ -718,6 +718,18 @@ def generate_post_from_catalogue():
     out["remaining_generation"]=generation_available-1
     return json.dumps(out)
 
+@app.route("/user/get_products",methods=["GET","POST"])
+@auth_api_key
+@token_required
+def get_products(user)->json :
+    if user.get("products",-1)==-1:
+        return json.dumps(
+            dict(products={},status_code=200)
+        )
+    else:
+        return json.dumps(dict(products=user["products"],status_code=200))
+    
+
 if __name__ == "__main__":
    app.run(
         host="0.0.0.0",
