@@ -570,6 +570,7 @@ def generate_post():
             audience=data["audience"],
             company_info=company_data["company_description"],
             moment_retriver=moment_retriver,
+            product_name=data["product"],
             products = company_data["products"],
             ref_post = data.get("similar_content",None),
             model="gpt_4_high_temp"

@@ -12,13 +12,14 @@ def generate_post_with_prod(company_name: str,
     audience: str,
     company_info,
     moment_retriver,
+    product_name:str,
     products:dict,
     ref_post:Union[str,None] = None,
     tone:Union[str,None] = None,
     structure:Union[str,None] = None,
     model="gpt_3_5_chat",
     )-> dict[str,str]:
-    prod = prepare_prods(products)
+    prod = prepare_prods(products[product_name],product_name)
     company_info += "Following are some of the products sell by {company_name}. Talk about the following products in the post: \n"+ prod
 
     if ref_post is None:
