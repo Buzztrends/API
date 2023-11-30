@@ -326,7 +326,7 @@ def get_user(data):
         )
     print("Returning user data")
     print(user)
-    return user
+    return json.dumps(user)
 
 @app.route("/user/update_user",methods=["POST"])
 @auth_api_key
