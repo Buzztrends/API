@@ -14,11 +14,11 @@ for item in keys:
     variable, value = item.split("=")[0], "=".join(item.split("=")[1:])
     os.environ[variable] = value.replace("\n", "")
 
+from functools import wraps
 import jwt
 import json
 import base64
 import bcrypt
-from functools import wraps
 from flask import Flask, request, make_response, jsonify
 from datetime import datetime, timedelta
 from security.auth import hash_password,verify_password
@@ -324,7 +324,8 @@ def get_user(data):
         return json.dumps(
             dict(message="User Does not Exists",status_code=401)
         )
-    
+    print("Returning user data")
+    print(user)
     return user
 
 @app.route("/user/update_user",methods=["POST"])
