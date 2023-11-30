@@ -45,7 +45,10 @@ from Moments.Moments import *
 from models import APIModel,User
 
 #==========================================
-
+print("Loading Guidelines...")
+with open("./utils/guidelines.json") as f:
+    guidelines = json.load(f)
+print("Guidelines Loaded")
 #==============App Setup==================
 app = Flask("BuzztrendsAPI")
 app.config["SECRET_KEY"]=os.environ["SECRET_KEY"]
@@ -478,6 +481,7 @@ def create_prompt():
 @app.route("/text_generation/simple_generation",methods=["POST"])
 def generate_post():
     global db
+    global guidelines
     data = request.get_json()
     if data.get("company_id",-1) == -1:
         return json.dumps(dict(message="Provide the compant ID",status_code=403)),403
@@ -486,11 +490,11 @@ def generate_post():
     if data.get("content_type",-1) == -1:
         data["content_type"]=""
     if data.get("tone",-1) == -1:
-        data["tone"]=""
+        data["tone"]=guidelines[data["content_type"]]["tone"]
     if data.get("objective",-1) == -1:
         data["objective"]=""
     if data.get("structure",-1) == -1:
-        data["structure"]=""
+        data["structure"]=guidelines[data["content_type"]]["structure"]
     if data.get("location",-1) == -1:
         data["location"]=" for general people from anywhere"
     if data.get("audience",-1) == -1:
@@ -522,8 +526,40 @@ def generate_post():
                             )
     
     print("Initializing Content Generation...")
-    if data.get("similar_content",-1) ==-1 or data.get("similar_content",-1) =='':
-        out = generate_content_2(
+    if data.get("product",-1)=="" or data.get("product",-1)==-1:
+        if data.get("similar_content",-1) ==-1 or data.get("similar_content",-1) =='':
+            out = generate_content_2(
+                company_name=company_data["company_name"],
+                moment=data["moment"],
+                content_type=data["content_type"],
+                tone=data["tone"],
+                objective=data["objective"],
+                structure=data["structure"],
+                location=data["location"],
+                audience=data["audience"],
+                company_info=company_data["company_description"],
+                moment_retriver=moment_retriver,
+                model="gpt_4_high_temp",
+                extras_guidelines = guidelines[data["content_type"]]["extras"]
+            )
+        else:
+            print("Similar Content Triggered")
+            out = generate_similar_content(
+                company_name=company_data["company_name"],
+                moment=data["moment"],
+                content_type=data["content_type"],
+                objective=data["objective"],
+                location=data["location"],
+                audience=data["audience"],
+                ref_post=data["similar_content"],
+                company_info=company_data["company_description"],
+                moment_retriver=moment_retriver,
+                model="gpt_4_high_temp",
+                extras_guidelines = guidelines[data["content_type"]]["extras"]
+            )
+    else:
+        print("Product Content Triggered")
+        out = generate_post_with_prod(
             company_name=company_data["company_name"],
             moment=data["moment"],
             content_type=data["content_type"],
@@ -534,20 +570,8 @@ def generate_post():
             audience=data["audience"],
             company_info=company_data["company_description"],
             moment_retriver=moment_retriver,
-            model="gpt_4_high_temp"
-        )
-    else:
-        print("Similar Content Triggered")
-        out = generate_similar_content(
-            company_name=company_data["company_name"],
-            moment=data["moment"],
-            content_type=data["content_type"],
-            objective=data["objective"],
-            location=data["location"],
-            audience=data["audience"],
-            ref_post=data["similar_content"],
-            company_info=company_data["company_description"],
-            moment_retriver=moment_retriver,
+            products = company_data["products"],
+            ref_post = data.get("similar_content",None),
             model="gpt_4_high_temp"
         )
     print("Content Successfully Generated!")
@@ -667,7 +691,7 @@ def generate_post_from_catalogue():
             audience=data["audience"],
             company_info=company_data["company_description"],
             moment_retriver=moment_retriver,
-            products = pd.read_csv(data["products"]),
+            products = company_data["products"],
             product_names_col = data["product_names_col"],
             product_name = data["product_name"],
             ref_post = data["reference_post"],
@@ -686,7 +710,6 @@ def generate_post_from_catalogue():
             company_info=company_data["company_description"],
             moment_retriver=moment_retriver,
             products = pd.read_csv(data["products"]),
-            product_names_col = data["product_names_col"],
             product_name = data["product_name"],
             ref_post = data["reference_post"],
             model="gpt_4_high_temp"
@@ -696,10 +719,22 @@ def generate_post_from_catalogue():
     out["remaining_generation"]=generation_available-1
     return json.dumps(out)
 
+@app.route("/user/get_products",methods=["GET","POST"])
+@auth_api_key
+@token_required
+def get_products(user)->json :
+    if user.get("products",-1)==-1:
+        return json.dumps(
+            dict(products={},status_code=200)
+        )
+    else:
+        return json.dumps(dict(products=list(user["products"].keys()),status_code=200))
+    
+
 if __name__ == "__main__":
    app.run(
         host="0.0.0.0",
-        port=443,
+        port=5000,
         debug=True,
-        ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
+        # ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
    )

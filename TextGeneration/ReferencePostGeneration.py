@@ -13,6 +13,7 @@ def generate_similar_content(company_name: str,
     company_info: str,
     moment_retriver: VectorStoreRetriever,
     ref_post:str,
+    extras_guidelines:str,
     model="gpt_3_5_chat"):
     llm = get_llm(model, 0.2)
     print("Reference Post\n","="*20,ref_post)
@@ -56,7 +57,7 @@ def generate_similar_content(company_name: str,
     content_gen_chain = LLMChain(llm=llm, prompt=content_gen_prompt_template, output_key="post")
 
     extras_gen_prompt = """Given this post text for a {content_type}: {post}
-    Tell me what other things can be put in the post. Include description of images, videos, audio, hashtags, etc. as lists, only include elements that are relevant to a {content_type}"""
+    Tell me what other things can be put in the post. Include description of images, videos, audio, hashtags, etc. as lists, only include elements that are relevant to a {content_type}"""+extras_guidelines
     extras_gen_prompt_template = PromptTemplate(input_variables = ["content_type","post"],template=extras_gen_prompt)
     extras_gen_chain = LLMChain(llm=llm, prompt=extras_gen_prompt_template, output_key="extras")
 

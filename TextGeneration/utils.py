@@ -4,15 +4,12 @@ from langchain.llms import OpenAI
 import pandas as pd
 
 
-def  prepare_prods(df:pd.DataFrame):
-    df = df.fillna("")
+def  prepare_prods(products:dict[str,dict[str,str]]):
     ans = ""
-    for i in range(df.shape[0]):
-        item_info = ""
-        for col in df.columns:
-            if df.loc[i,col] != "" :
-                print(df.loc[i,col])
-                item_info += f"{col}:{df.loc[i,col]} || "
-        item_info +="\n"
-        ans+=item_info
+    for prod in products.keys():
+        temp = ""
+        for feature in products[prod].keys():
+            temp+=f"{feature}:{products[prod][feature]}\t\t"
+        ans+=f" [{prod}:{temp}]\n"
+
     return ans

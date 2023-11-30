@@ -12,15 +12,13 @@ def generate_post_with_prod(company_name: str,
     audience: str,
     company_info,
     moment_retriver,
-    products:pd.DataFrame,
-    product_names_col:str,
-    product_name:str,
+    products:dict,
     ref_post:Union[str,None] = None,
     tone:Union[str,None] = None,
     structure:Union[str,None] = None,
     model="gpt_3_5_chat",
     )-> dict[str,str]:
-    prod = prepare_prods(products.loc[products[product_names_col].isin(product_name)].reset_index())
+    prod = prepare_prods(products)
     company_info += "Following are some of the products sell by {company_name}. Talk about the following products in the post: \n"+ prod
 
     if ref_post is None:
