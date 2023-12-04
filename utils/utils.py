@@ -30,7 +30,7 @@ def replace_website_links(text):
 
 def get_llm(name, temperature=0):
     return {
-        "gpt_3_5_chat_azure":AzureChatOpenAI(openai_api_key=os.environ["AZURE_OPENAI_KEY"],openai_api_base=os.environ["AZURE_OPENAI_API_BASE"],deployment_name="buzztrends-gpt35",openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],temperature=temperature),
+        "gpt_3_5_chat_azure":AzureChatOpenAI(openai_api_key=os.environ["AZURE_OPENAI_KEY"],openai_api_base=os.environ["AZURE_OPENAI_API_BASE"],deployment_name="buzztrends-gpt35-turbo16k",openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],temperature=temperature),
         "gpt_3_5_chat":ChatOpenAI(model_name="gpt-3.5-turbo-16k", temperature=temperature),
         "gpt_3_5_high_temp_azure":AzureChatOpenAI(openai_api_key=os.environ["AZURE_OPENAI_KEY"],openai_api_base=os.environ["AZURE_OPENAI_API_BASE"],deployment_name="buzztrends-gpt35-turbo16k",openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],temperature=0.7),
         "gpt_3_5_high_temp":ChatOpenAI(model_name="gpt-3.5-turbo-16k", temperature=0.7),
