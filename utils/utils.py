@@ -86,7 +86,10 @@ def googleSearch(query:str, country:str="IN", num_results:int=10):
     resp = resource.list(q=query, cx=cse_key,num=n%10).execute()
 
     nextPage = resp['queries']['nextPage'][0]['startIndex'] if resp['queries'].get('nextPage',-1) != -1 else None
-    links = [i['link'] for i in resp['items']]
+    print(resp)
+    links =[]
+    if resp.get('items',-1) != -1:
+        links = [i['link'] for i in resp['items']]
     results.extend(links[:n%10])
     
     # return the URLs 
