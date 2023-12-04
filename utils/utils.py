@@ -115,4 +115,4 @@ def run_simple_query(context, query, lln_name="gpt_3_5_chat"):
         })['answer']
 
 # if __name__ == "__main__":
-googleSearch("Updated Mahindra XUV400 to take on Tata Nexon.EV Facelift Automobile, Motosports, Roadtrip, Offroading",country="AE",num_results=5)
+# googleSearch("Updated Mahindra XUV400 to take on Tata Nexon.EV Facelift Automobile, Motosports, Roadtrip, Offroading",country="AE",num_results=5)
