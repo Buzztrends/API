@@ -13,7 +13,7 @@ from utils.utils import get_embedding_function
 print(os.path.abspath(os.path.curdir)+"/ImageGeneration/")
 print("Creating Indexes from Handbook...")
 pdf = PyPDFLoader(file_path=os.path.abspath(os.path.curdir)+"/ImageGeneration/"+r"prompt_book.pdf")
-index = VectorstoreIndexCreator(embedding=get_embedding_function()).from_loaders([pdf])
+index = VectorstoreIndexCreator().from_loaders([pdf])
 gpt_3_5 = ChatOpenAI(model_name="gpt-3.5-turbo-16k", temperature=0.7)
 print("Indexes created Successfully")
 

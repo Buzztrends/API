@@ -19,7 +19,7 @@ def get_embedding_function():
     openai_api_base=os.environ["AZURE_OPENAI_API_BASE"],
     openai_api_type="azure",
     openai_api_key=os.environ["AZURE_OPENAI_KEY"],
-    chunk_size=1024
+    chunk_size=10240
 )
     return embeddings
     
