@@ -77,15 +77,19 @@ def googleSearch(query:str, country:str="IN", num_results:int=10):
     # search the required number of URLs
     for i in range(n//10):
         resp= resource.list(q=query, cx=cse_key,num=10,start=nextPage,gl=country,dateRestrict = {'d':30}).execute()
-        nextPage = resp['queries']['nextPage'][0]['startIndex']
-        links = [i['link'] for i in resp['items']]
-        results.extend(links)
+        if resp["queries"].get('nextPage',-1) != -1:
+            nextPage = resp['queries']['nextPage'][0]['startIndex']
+            links = [i['link'] for i in resp['items']]
+            results.extend(links)
+        else:
+            break
     resp = resource.list(q=query, cx=cse_key,num=n%10).execute()
-    nextPage = resp['queries']['nextPage'][0]['startIndex']
+
+    nextPage = resp['queries']['nextPage'][0]['startIndex'] if resp['queries'].get('nextPage',-1) != -1 else None
     links = [i['link'] for i in resp['items']]
     results.extend(links[:n%10])
     
-    # return the URLs
+    # return the URLs 
     return results
 
 def get_related_links(query, num_results=10, initial="", kind="", country="IN"):
