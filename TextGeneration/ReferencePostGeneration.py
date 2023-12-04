@@ -24,11 +24,11 @@ def generate_similar_content(company_name: str,
     if audience == "":
         audience = "to everyone"
     # =================== MOMENT EXTRACTOR CHAIN ==========
-    moment_query = f"Tell me in detail about {moment}"
+    moment_query = f"Tell me in detail about {moment}."
     relevant_docs = moment_retriver.get_relevant_documents(moment_query)
     moment_context = "\n".join([item.page_content.replace("\n", " ") for item in relevant_docs])
     moment_query_template = """Given the following context, i want you to answer this query: {moment_query}
-
+    Do Not include any website data or URL. Try not adding any news websites name
     {moment_context}
     """
     moment_prompt = PromptTemplate(input_variables=["moment_query", "moment_context"], template=moment_query_template)
