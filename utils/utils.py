@@ -9,6 +9,11 @@ from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
 
+import re
+
+def replace_website_links(text):
+    regex = r"- (\w+\.com)"
+    return re.sub(regex, "", text)
 
 def get_llm(name, temperature=0):
     return {
@@ -68,6 +73,7 @@ def googleSearch(query:str, country:str="IN", num_results:int=10):
     
     results = []
     nextPage = 0
+    query = replace_website_links(query)
     n = num_results
     print("Getting information on:", query)
 
@@ -115,4 +121,4 @@ def run_simple_query(context, query, lln_name="gpt_3_5_chat"):
         })['answer']
 
 # if __name__ == "__main__":
-# googleSearch("Updated Mahindra XUV400 to take on Tata Nexon.EV Facelift Automobile, Motosports, Roadtrip, Offroading",country="AE",num_results=5)
+# googleSearch("Updated Mahindra XUV400 to take on Tata Nexon.EV Facelift: Fresh spyshots - CarToq.com Automobile, Motosports, Roadtrip, Offroading",country="AE",num_results=5)
