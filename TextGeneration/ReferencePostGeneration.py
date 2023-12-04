@@ -14,7 +14,7 @@ def generate_similar_content(company_name: str,
     moment_retriver: VectorStoreRetriever,
     ref_post:str,
     extras_guidelines:str,
-    model="gpt_3_5_chat"):
+    model="gpt_3_5_chat_azure"):
     llm = get_llm(model, 0.2)
     print("Reference Post\n","="*20,ref_post)
 

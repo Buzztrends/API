@@ -1,3 +1,4 @@
+import argparse
 #------------- SERVER IMPORTS-------------
 import os
 
@@ -539,7 +540,7 @@ def generate_post():
                 audience=data["audience"],
                 company_info=company_data["company_description"],
                 moment_retriver=moment_retriver,
-                model="gpt_4_high_temp",
+                model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure",
                 extras_guidelines = guidelines[data["content_type"]]["extras"]
             )
         else:
@@ -554,7 +555,7 @@ def generate_post():
                 ref_post=data["similar_content"],
                 company_info=company_data["company_description"],
                 moment_retriver=moment_retriver,
-                model="gpt_4_high_temp",
+                model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure",
                 extras_guidelines = guidelines[data["content_type"]]["extras"]
             )
     else:
@@ -573,7 +574,7 @@ def generate_post():
             product_name=data["product"],
             products = company_data["products"],
             ref_post = data.get("similar_content",None),
-            model="gpt_4_high_temp"
+            model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure"
         )
     print("Content Successfully Generated!")
     generation_available = company_data["generation_available"]
@@ -637,7 +638,7 @@ def generate_reference_post():
             ref_post=data["reference_post"],
             company_info=company_data["company_description"],
             moment_retriver=moment_retriver,
-            model="gpt_4_high_temp"
+            model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure"
         )
     else:
         out = generate_similar_content(
@@ -650,7 +651,7 @@ def generate_reference_post():
             ref_post=data["reference_post"],
             company_info=company_data["company_description"],
             moment_retriver=moment_retriver,
-            model="gpt_4_high_temp"
+            model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure"
         )
     generation_available = company_data["generation_available"]
     db["users"]["user-data"].find_one_and_update(filter={"company_id":data["company_id"]},update={"$set":{"generation_available":generation_available-1}})
@@ -696,7 +697,7 @@ def generate_post_from_catalogue():
             product_names_col = data["product_names_col"],
             product_name = data["product_name"],
             ref_post = data["reference_post"],
-            model="gpt_4_high_temp"
+            model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure"
         )
     else:
         out = generate_post_with_prod(
@@ -713,7 +714,7 @@ def generate_post_from_catalogue():
             products = pd.read_csv(data["products"]),
             product_name = data["product_name"],
             ref_post = data["reference_post"],
-            model="gpt_4_high_temp"
+            model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure"
         )
     generation_available = company_data["generation_available"]
     db["users"]["user-data"].find_one_and_update(filter={"company_id":data["company_id"]},update={"generation_available":generation_available-1})
@@ -733,9 +734,18 @@ def get_products(user)->json :
     
 
 if __name__ == "__main__":
-   app.run(
-        host="0.0.0.0",
-        port=443,
-        debug=True,
-        ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
-   )
+   
+
+    parser = argparse.ArgumentParser(description='find env settings',prog='server.py')
+    parser.add_argument('--env',dest='ENV_SETTINGS',default='DEV',help="Setup the enviroment",choices=["DEV","PROD"])
+
+    arg = (parser.parse_args())
+    env_settings = (arg.ENV_SETTINGS)
+    print("Booting the server in ",env_settings," settings")
+    os.environ['ENV_SETTINGS']=env_settings
+    app.run(
+            host="0.0.0.0",
+            port=5000,
+            debug=True,
+            # ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
+    )

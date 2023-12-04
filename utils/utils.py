@@ -6,10 +6,23 @@ from googleapiclient.discovery import build
 
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.chat_models import ChatOpenAI
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI,AzureChatOpenAI
+from langchain.llms import OpenAI,AzureOpenAI
+
+from langchain.embeddings import OpenAIEmbeddings
 
 import re
+def get_embedding_function():
+    embeddings = OpenAIEmbeddings(
+    deployment="buzztrends-openai-embeddings",
+    model="text-embedding-ada-002",
+    openai_api_base=os.environ["AZURE_OPENAI_API_BASE"],
+    openai_api_type="azure",
+    openai_api_key=os.environ["AZURE_OPENAI_KEY"],
+    chunk_size=1024
+)
+    return embeddings
+    
 
 def replace_website_links(text):
     regex = r"- (\w+\.com)"
@@ -17,12 +30,16 @@ def replace_website_links(text):
 
 def get_llm(name, temperature=0):
     return {
+        "gpt_3_5_chat_azure":AzureChatOpenAI(openai_api_key=os.environ["AZURE_OPENAI_KEY"],openai_api_base=os.environ["AZURE_OPENAI_API_BASE"],deployment_name="buzztrends-gpt35",openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],temperature=temperature),
         "gpt_3_5_chat":ChatOpenAI(model_name="gpt-3.5-turbo-16k", temperature=temperature),
+        "gpt_3_5_high_temp_azure":AzureChatOpenAI(openai_api_key=os.environ["AZURE_OPENAI_KEY"],openai_api_base=os.environ["AZURE_OPENAI_API_BASE"],deployment_name="buzztrends-gpt35-turbo16k",openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],temperature=0.7),
         "gpt_3_5_high_temp":ChatOpenAI(model_name="gpt-3.5-turbo-16k", temperature=0.7),
         "gpt_4_chat":ChatOpenAI(model_name="gpt-4", temperature=temperature),
+        "gpt_3_5_azure":AzureOpenAI(openai_api_key=os.environ["AZURE_OPENAI_KEY"],openai_api_base=os.environ["AZURE_OPENAI_API_BASE"],deployment_name="buzztrends-gpt35-turbo16k",openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],temperature=temperature),
         "gpt_3_5":OpenAI(model_name="gpt-3.5-turbo-16k", temperature=temperature),
         "gpt_4":OpenAI(model_name="gpt-4", temperature=temperature),
-        "gpt_4_high_temp":OpenAI(model_name="gpt-4", temperature=0.7)
+        "gpt_4_high_temp":OpenAI(model_name="gpt-4", temperature=0.7),
+        "gpt_3_5_instruct_azure":AzureChatOpenAI(openai_api_key=os.environ["AZURE_OPENAI_KEY"],openai_api_base=os.environ["AZURE_OPENAI_API_BASE"],deployment_name="buzztrends-gpt35-turbo-instruct",openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],temperature=temperature)
         }[name]
 
 def extract_text_from(url):
@@ -107,7 +124,7 @@ def get_related_links(query, num_results=10, initial="", kind="", country="IN"):
 
     return results
 
-def run_simple_query(context, query, lln_name="gpt_3_5_chat"):
+def run_simple_query(context, query, lln_name="gpt_3_5_chat_azure"):
     template = """Given this context, answer this query: {query}
 
 {context}

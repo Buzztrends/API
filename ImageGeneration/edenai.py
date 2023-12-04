@@ -8,6 +8,8 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
 
+from utils.utils import get_embedding_function
+
 print(os.path.abspath(os.path.curdir)+"/ImageGeneration/")
 print("Creating Indexes from Handbook...")
 pdf = PyPDFLoader(file_path=os.path.abspath(os.path.curdir)+"/ImageGeneration/"+r"prompt_book.pdf")

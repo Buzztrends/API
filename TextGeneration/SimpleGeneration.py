@@ -18,7 +18,7 @@ def generate_content(
     audience: str,
     company_info: str,
     moment_retriver: VectorStoreRetriever,
-    model="gpt_3_5_chat"
+    model="gpt_3_5_chat_azure"
 ): 
     if location == "":
         location = "No specific target location."
@@ -30,6 +30,8 @@ def generate_content(
     print("using ", model)
     llm = get_llm(model, 0.5)
     
+    print("using Retreiver model ", "gpt_3_5_chat_azure")
+    ret_llm = get_llm("gpt_3_5_chat_azure", 0.5)
     # =================== MOMENT EXTRACTOR CHAIN ==========
     moment_query = f"Tell me in detail about {moment}"
     relevant_docs = moment_retriver.get_relevant_documents(moment_query)
@@ -39,7 +41,7 @@ def generate_content(
     {moment_context}
     """
     moment_prompt = PromptTemplate(input_variables=["moment_query", "moment_context"], template=moment_query_template)
-    moment_chain = LLMChain(llm=get_llm("gpt_3_5_chat"), prompt=moment_prompt, output_key="moment_info")
+    moment_chain = LLMChain(llm=ret_llm, prompt=moment_prompt, output_key="moment_info")
 
     # OLD STUFF
     # moment_query_template = "Tell me about {moment_query}. How is it relevant, significant, and important?"
@@ -114,7 +116,7 @@ def generate_content_2(
     company_info,
     moment_retriver,
     extras_guidelines:str,
-    model="gpt_3_5_chat",
+    model="gpt_3_5_chat_azure",
 ): 
     llm = get_llm(model, 0.5)
     if location == "":
@@ -125,6 +127,9 @@ def generate_content_2(
     
     # llm = OpenAI(model_name="gpt-3.5-turbo-16k", temperature=0.5)
     print("using ", model)
+
+    print("Using Retreiver LLM:","gpt_3_5_chat_azure")
+    retrieve_llm = get_llm("gpt_3_5_chat_azure")
     # llm = AzureOpenAI(deployment_name="buzztrends-gpt35",model_name="gpt-35-turbo",openai_api_key=AZURE_OPENAI_KEY,openai_api_base=OPENAI_API_BASE,openai_api_version=OPENAI_API_VERSION,temperature=0.7,top_p=0.95)
     moment_query = f"Tell me in detail about {moment}"
     relevant_docs = moment_retriver.get_relevant_documents(moment_query)
@@ -134,7 +139,7 @@ def generate_content_2(
     {moment_context}
     """
     moment_prompt = PromptTemplate(input_variables=["moment_query", "moment_context"], template=moment_query_template)
-    moment_chain = LLMChain(llm=get_llm("gpt_3_5_chat"), prompt=moment_prompt, output_key="moment_info")
+    moment_chain = LLMChain(llm=retrieve_llm, prompt=moment_prompt, output_key="moment_info")
 
     # moment_query_template = "Tell me about {moment_query}. How is it relevant, significant, and important?"
     # moment_prompt = PromptTemplate(input_variables=["moment_query"], template=moment_query_template)
@@ -204,7 +209,7 @@ Format the output as "Prompt":<Prompt>
 
     Tell me what other things can be put in the post. Include description of images, videos, audio, hashtags, etc. as lists, only include elements that are relevant to a {content_type}."""+extras_guidelines
     generator_prompt = PromptTemplate(input_variables=["post", "content_type"], template=generator_template)
-    generator_chain = LLMChain(llm=llm, prompt=generator_prompt, output_key="extras")
+    generator_chain = LLMChain(llm=retrieve_llm, prompt=generator_prompt, output_key="extras")
 
     final_chain = SequentialChain(
         chains=[post_chain, generator_chain],

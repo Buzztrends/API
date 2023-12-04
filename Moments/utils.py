@@ -3,7 +3,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from tqdm import tqdm
 from langchain.memory.vectorstore import VectorStoreRetrieverMemory
-
+from utils.utils import get_embedding_function
 def build_splited_docs(sitetexts):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0, separators=[" ", ".", ",", "\n"])
 
@@ -20,7 +20,7 @@ def build_vectorstore(sitetexts, k=20):
     print("Splitting")
     docs, metadatas = build_splited_docs(sitetexts)
     print("encoding")
-    vectorstore = Chroma.from_texts(docs, OpenAIEmbeddings(), metadatas=metadatas)
+    vectorstore = Chroma.from_texts(docs, get_embedding_function(), metadatas=metadatas)
     print("building retriver")
     retriever = vectorstore.as_retriever(search_kwargs={'k': k})
     keyword_memory = VectorStoreRetrieverMemory(
