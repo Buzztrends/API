@@ -502,7 +502,6 @@ def generate_post():
         data["audience"]=" for everyone across the world"
     if data.get("custom_moment",-1) == -1:
         data["custom_moment"]=1
-    print(data)
     moment = data["moment"].split(" | ")[0]
     company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
     if not company_data:
@@ -512,7 +511,6 @@ def generate_post():
     print("Company Generation Info:",company_data.get("generation_available"))
     if company_data.get("generation_available") is None:
         company_data =db["users"]["user-data"].update_one({"company_id":data["company_id"]},update={"$set":{'generation_available':20}})
-        print("\nUpdate Result \n",company_data)
     elif company_data["generation_available"] == 0:
         return json.dumps(
             dict(message="You have exhausted your generation credits!",status_code=403)
