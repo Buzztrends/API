@@ -1,6 +1,63 @@
 import argparse
+import logging
+
 #------------- SERVER IMPORTS-------------
 import os
+
+from logging.config import dictConfig
+
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+                "datefmt": "%B %d, %Y %H:%M:%S %Z",
+            }
+        },
+        
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stdout",
+                "formatter": "default",
+            },"root_file":{
+                "class": "logging.FileHandler",
+                "filename":"./logs/root.log",
+                "formatter": "default",
+            },"out_file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": "./logs/out_request.log",
+                "formatter": "default",
+                "maxBytes": 1000000,
+                "backupCount": 5,
+            },"in_file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": "./logs/in_request.log",
+                "formatter": "default",
+                "maxBytes": 1000000,
+                "backupCount": 5,
+            }
+        },"root": {
+            "level": "DEBUG", "handlers": ["console","root_file"]
+        },"loggers": {
+            "incoming_req": {
+                "level": "INFO",
+                "handlers": ["in_file"],
+                "propagate": False,
+            },
+            "outgoing_req": {
+                "level": "INFO",
+                "handlers": ["out_file"],
+                "propagate": False,
+            }
+        },
+        
+    }
+)
+
+extra = logging.getLogger("incoming_req")
+out = logging.getLogger("outgoing_req")
 
 if not os.path.exists("./config/.env"):
     # os.mkdir("./config/.env")
@@ -20,7 +77,7 @@ import jwt
 import json
 import base64
 import bcrypt
-from flask import Flask, request, make_response, jsonify
+from flask import Flask, request, make_response, jsonify,session
 from datetime import datetime, timedelta
 from security.auth import hash_password,verify_password
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
@@ -123,6 +180,7 @@ def token_required(f):
                 'message' : 'Token is invalid !!'
             }), 401
         # returns the current logged in users context to the routes
+        session["ctx"] = current_user["username"]
         return  f(current_user,*args,**kwargs)
   
     return decorated
@@ -729,7 +787,43 @@ def get_products(user)->json :
         )
     else:
         return json.dumps(dict(products=list(user["products"].keys()),status_code=200))
-    
+
+@app.after_request
+def logAfterRequest(response):
+    ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+    out.info(
+        "(IP: %s) | path: %s | method: %s | status: %s | size: %s >>> | user: %s \nResponse: %s",
+        ip_addr,
+        request.path,
+        request.method,
+        response.status,
+        response.content_length,
+        session["ctx"],
+        response.get_data()
+    )
+
+    return response
+
+@app.before_request
+def logBeforeRequest():
+    ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+    if request.content_length !=0:
+        json_data = request.get_json()
+        session["ctx"] = json_data["username"]
+    else:
+        session["ctx"] = "No username provided"
+        json_data = {}
+    extra.info(
+        "Incoming Request from:(IP: %s) | path: %s | method: %s | size: %s | >>> user: %s | payload: %s",
+        ip_addr,
+        request.path,
+        request.method,
+        request.content_length,
+        session["ctx"],
+        json_data
+    )
+
+    return 
 
 if __name__ == "__main__":
    
@@ -743,7 +837,7 @@ if __name__ == "__main__":
     os.environ['ENV_SETTINGS']=env_settings
     app.run(
             host="0.0.0.0",
-            port=443,
+            port=5000,
             debug=True,
-            ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
+            # ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
     )
