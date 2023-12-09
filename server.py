@@ -813,7 +813,7 @@ def logBeforeRequest():
     else:
         session["ctx"] = "No username provided"
         json_data = {}
-        print("before Request\nsession['ctx']:",session['ctx'])
+    print("before Request\nsession['ctx']:",session['ctx'])
     extra.info(
         "Incoming Request from:(IP: %s) | path: %s | method: %s | size: %s | >>> user: %s | payload: %s",
         ip_addr,
