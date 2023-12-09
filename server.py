@@ -831,7 +831,7 @@ def logBeforeRequest():
             json_data
         )
 
-        return 
+    return 
 
 if __name__ == "__main__":
    
