@@ -50,7 +50,7 @@ class User(BaseModel):
     country_code       : str                        = Field(...)
     generation_available:int                        = 99
     products           : dict                       = {} 
-    moments            : Union[Moments,None]        = None
+    moments            : Union[Moments,None]        = Moments()
     saved_posts       : Union[dict[str,List],None] = {'under_review':[],'reviewed':[],'live':[]}
     last_5_generations : Union[list[Post],None,List] = []
     saved_topics        : Union[dict[str,List],None] = []
