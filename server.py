@@ -371,6 +371,9 @@ def login_user():
         response = json.dumps(dict(message="User authentication Failed",status_code=401))
 
     response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Methods', ["POST", "GET", "OPTIONS", "PUT", "DELETE"])
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+
 
     return response
 
@@ -790,45 +793,45 @@ def get_products(user)->json :
 
 @app.after_request
 def logAfterRequest(response):
-  if request.method!="OPTIONS":
-    if session.get("ctx"==-1):
-        session["ctx"] = "No User name provided"
-    ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
-    out.info(
-        "(IP: %s) | path: %s | method: %s | status: %s | size: %s >>> | user: %s \nResponse: %s",
-        ip_addr,
-        request.path,
-        request.method,
-        response.status,
-        response.content_length,
-        session["ctx"],
-        response.get_data()
-    )
+    if request.method!="OPTIONS":
+        if session.get("ctx"==-1):
+            session["ctx"] = "No User name provided"
+        ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+        out.info(
+            "(IP: %s) | path: %s | method: %s | status: %s | size: %s >>> | user: %s \nResponse: %s",
+            ip_addr,
+            request.path,
+            request.method,
+            response.status,
+            response.content_length,
+            session["ctx"],
+            response.get_data()
+        )
 
-  return response
+    return response
 
 @app.before_request
 def logBeforeRequest():
-  if request.method != "OPTIONS":  
-    ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
-    if request.content_length !=0:
-        json_data = request.get_json()
-        session["ctx"] = json_data["username"]
-    else:
-        session["ctx"] = "No username provided"
-        json_data = {}
-    print("before Request\nsession['ctx']:",session['ctx'])
-    extra.info(
-        "Incoming Request from:(IP: %s) | path: %s | method: %s | size: %s | >>> user: %s | payload: %s",
-        ip_addr,
-        request.path,
-        request.method,
-        request.content_length,
-        session["ctx"],
-        json_data
-    )
+    if request.method != "OPTIONS":  
+        ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+        if request.content_length !=0:
+            json_data = request.get_json()
+            session["ctx"] = json_data["username"]
+        else:
+            session["ctx"] = "No username provided"
+            json_data = {}
+        print("before Request\nsession['ctx']:",session['ctx'])
+        extra.info(
+            "Incoming Request from:(IP: %s) | path: %s | method: %s | size: %s | >>> user: %s | payload: %s",
+            ip_addr,
+            request.path,
+            request.method,
+            request.content_length,
+            session["ctx"],
+            json_data
+        )
 
-    return 
+        return 
 
 if __name__ == "__main__":
    
