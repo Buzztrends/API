@@ -350,6 +350,7 @@ def register_user():
     return json.dumps(dict(message="User Registered Successfully",user=data["username"]))
 
 @app.route("/user/authenticate",methods=["POST"])
+@cross_origin(origins="*")
 @auth_api_key
 def login_user():
     data = request.get_json()
