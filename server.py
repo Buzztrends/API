@@ -349,7 +349,7 @@ def register_user():
     print("Transaction Success")
     return json.dumps(dict(message="User Registered Successfully",user=data["username"]))
 
-@app.route("/user/authenticate",methods=["POST"])
+@app.route("/user/authenticate",methods=["POST","OPTIONS"])
 @auth_api_key
 def login_user():
     data = request.get_json()
@@ -790,6 +790,7 @@ def get_products(user)->json :
 
 @app.after_request
 def logAfterRequest(response):
+  if request.method!="OPTIONS":
     if session.get("ctx"==-1):
         session["ctx"] = "No User name provided"
     ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
@@ -804,10 +805,11 @@ def logAfterRequest(response):
         response.get_data()
     )
 
-    return response
+  return response
 
 @app.before_request
 def logBeforeRequest():
+  if request.method != "OPTIONS":  
     ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
     if request.content_length !=0:
         json_data = request.get_json()
