@@ -790,7 +790,8 @@ def get_products(user)->json :
 
 @app.after_request
 def logAfterRequest(response):
-  if request.method!="OPTIONS":
+    print("response.content_length:",response.content_length)
+    resp_data = response.get_data() if response.content_length is not None else ""
     if session.get("ctx"==-1):
         session["ctx"] = "No User name provided"
     ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
@@ -802,21 +803,21 @@ def logAfterRequest(response):
         response.status,
         response.content_length,
         session["ctx"],
-        response.get_data()
+        resp_data
     )
-
-  return response
+    return response
 
 @app.before_request
 def logBeforeRequest():
-  if request.method != "OPTIONS":  
     ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
-    if request.content_length !=0:
-        json_data = request.get_json()
-        session["ctx"] = json_data["username"]
-    else:
-        session["ctx"] = "No username provided"
-        json_data = {}
+    session["ctx"] = "No username provided"
+    json_data = {}
+    print("request.content_length:",request.content_length)
+    if request.content_length is not None:
+        if request.content_length != 0:
+            print("I am here")
+            json_data = request.get_json()
+
     print("before Request\nsession['ctx']:",session['ctx'])
     extra.info(
         "Incoming Request from:(IP: %s) | path: %s | method: %s | size: %s | >>> user: %s | payload: %s",
@@ -827,9 +828,13 @@ def logBeforeRequest():
         session["ctx"],
         json_data
     )
+    # request.headers.add("content-type","application/json")
 
-    return 
-
+@app.route("/get_test",methods=["GET"])
+def get_test():
+    print(request)
+    print("Hey there")
+    return json.dumps(dict(message="You did it!"))
 if __name__ == "__main__":
    
 
@@ -842,7 +847,7 @@ if __name__ == "__main__":
     os.environ['ENV_SETTINGS']=env_settings
     app.run(
             host="0.0.0.0",
-            port=443,
+            port=5000,
             debug=True,
-            ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
+            # ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
     )
