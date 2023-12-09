@@ -39,7 +39,7 @@ class Post(BaseModel):
     pass
 
 class User(BaseModel):
-    company_id         : int                        = Field(default_factory=lambda :uuid.uuid4().int & (1<<32)-1)
+    company_id         : str                        = Field(default_factory=lambda :uuid.uuid4().int & (1<<32)-1)
     
     company_name       : str                        = Field(...)
     username           : str                        = Field(...)
@@ -53,7 +53,7 @@ class User(BaseModel):
     moments            : Union[Moments,None]        = None
     saved_posts       : Union[dict[str,List],None] = {'under_review':[],'reviewed':[],'live':[]}
     last_5_generations : Union[list[Post],None,List] = []
-    saved_topics        : Union[dict[str,List],None,List] = []
+    saved_topics        : Union[dict[str,List],None] = []
     model_config = ConfigDict(title='Main')
     
     @classmethod
