@@ -790,6 +790,8 @@ def get_products(user)->json :
 
 @app.after_request
 def logAfterRequest(response):
+    if session.get("ctx"==-1):
+        session["ctx"] = "No User name provided"
     ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
     out.info(
         "(IP: %s) | path: %s | method: %s | status: %s | size: %s >>> | user: %s \nResponse: %s",
