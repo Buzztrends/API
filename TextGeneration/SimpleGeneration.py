@@ -120,7 +120,7 @@ def generate_content_2(
     extras_guidelines:str,
     model="gpt_3_5_chat_azure",
 ): 
-    logger.info(f"{__name__}:\n- Parameters:\\
+    logger.info(f"{__name__} Called:\n- Parameters:\
                  \n\tCompany Name:{company_name}\
                  \n\t-Moment:{moment}\
                  \n\t-Content Type:{content_type}\

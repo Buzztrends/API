@@ -25,7 +25,7 @@ def generate_post_with_prod(company_name: str,
     )-> dict[str,str]:
     prod = prepare_prods(products[product_name],product_name)
     company_info += "Following are some of the products sell by {company_name}. Talk about the following products in the post: \n"+ prod
-    logger.info(f"{__name__}:\n- Parameters:\\
+    logger.info(f"{__name__} Called Called:\n- Parameters:\
                  \n\tCompany Name:{company_name}\
                  \n\t-Moment:{moment}\
                  \n\t-Content Type:{content_type}\

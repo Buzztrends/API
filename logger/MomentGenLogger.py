@@ -3,7 +3,7 @@ from logging.handlers import RotatingFileHandler
 
 class MomentGenLogger:
     def __init__(self) -> None:
-        self.logger = logging.getLogger("ContentGenLogger")
+        self.logger = logging.getLogger("MomentGenLogger")
         self.logger.setLevel(logging.INFO)
         
         #================ Formatter ================

@@ -4,7 +4,7 @@ from langchain.memory.vectorstore import VectorStoreRetrieverMemory
 from logger.MomentGenLogger import MomentGenLogger
 logger = MomentGenLogger().getLogger()
 def get_memory_for_custom_moment(moment,business_type,country_code):
-    logger.info(f"{__name__}:\n- Parameters:\n\t-Moment:{moment}\n\tBusiness Type:{business_type},\n\tCountry Code:{country_code}")
+    logger.info(f"{__name__} Called:\n- Parameters:\n\t-Moment:{moment}\n\tBusiness Type:{business_type},\n\tCountry Code:{country_code}")
     moment =moment.split(" | ")[0]
 
     try:
