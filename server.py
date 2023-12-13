@@ -295,19 +295,19 @@ def register_user():
 @auth_api_key
 def login_user():
     data = request.get_json()
-    if not is_user_valid(data["username"]):
+    if not is_user_valid(data["username"].lower()):
         return json.dumps(
             dict(message="User Does not Exists",status_code=401)
         )
     passw = data["password"]
-    hashed_password = db["users"]["user-data"].find_one({"username":data["username"]})["password"]
+    hashed_password = db["users"]["user-data"].find_one({"username":data["username"].lower()})["password"]
     if verify_password(passw,hashed_password):
         token = jwt.encode({
-            'username': data["username"],
+            'username': data["username"].lower(),
             'exp' : datetime.utcnow() + timedelta(minutes = 300)
         }, app.config['SECRET_KEY'])
 
-        response = jsonify(dict(message="User Authenticated Successfully",username=data["username"],company_name=db["users"]["user-data"].find_one({"username":data["username"]})["company_name"],company_id=db["users"]["user-data"].find_one({"username":data["username"]})["company_id"],token=token,status_code=200))
+        response = jsonify(dict(message="User Authenticated Successfully",username=data["username"],company_name=db["users"]["user-data"].find_one({"username":data["username"].lower()})["company_name"],company_id=db["users"]["user-data"].find_one({"username":data["username"].lower()})["company_id"],token=token,status_code=200))
         
     else:
         response = json.dumps(dict(message="User authentication Failed",status_code=401))
@@ -740,7 +740,7 @@ if __name__ == "__main__":
     os.environ['ENV_SETTINGS']=env_settings
     app.run(
             host="0.0.0.0",
-            port=443,
+            port=5000,
             debug=True,
-            ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
+            # ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
     )
