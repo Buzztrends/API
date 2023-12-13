@@ -149,7 +149,6 @@ def api_admin_action(func):
         collection = db["users"]["api_subscribers"]
         print(userId)
         db_resp= collection.find_one({"uid":userId})
-        print(db_resp,"\n================\n")
         if db_resp is None:
             return json.dumps(dict(message="Invalid User Provided",status_code=401))
         else:
@@ -246,7 +245,6 @@ def create_api_admin():
     
     API_KEY = encrypt(user.uid.encode(),pub)
     API_KEY = base64.b64encode(API_KEY).decode("utf-8")
-    print(user.to_json())
     db["users"]["api_subscribers"].insert_one((user.to_json()))
     return json.dumps(
         dict(
@@ -274,7 +272,6 @@ def register_api():
         pub = PublicKey.load_pkcs1(pub)
         API_KEY = encrypt(user.uid.encode(),pub)
         API_KEY = base64.b64encode(API_KEY).decode("utf-8")
-        print(user.to_json())
         db["users"]["api_subscribers"].insert_one((user.to_json()))
         return json.dumps(
             dict(
@@ -386,8 +383,6 @@ def get_user(data):
         return json.dumps(
             dict(message="User Does not Exists",status_code=401)
         )
-    print("Returning user data")
-    print(user)
     return json.dumps(user)
 
 @app.route("/user/update_user",methods=["POST"])
@@ -414,7 +409,6 @@ def update_user(user):
                 )
             else:
                 old_password = db["users"]["user-data"].find_one({"username":username})["password"]
-                print(old_password)
                 verify = verify_password(old_value,old_password)
                 print("Verify Status:",verify)
                 if verify:
