@@ -2,11 +2,13 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
 from langchain.vectorstores.base import VectorStoreRetriever
-
-
+from logger.contentGenLogger import ContentGenLogger
 from utils.utils import get_llm
 
 import openai
+
+logger = ContentGenLogger().getLogger()
+
 def generate_content(
     company_name: str,
     moment: str,
@@ -118,6 +120,17 @@ def generate_content_2(
     extras_guidelines:str,
     model="gpt_3_5_chat_azure",
 ): 
+    logger.info(f"{__name__}:\n- Parameters:\\
+                 \n\tCompany Name:{company_name}\
+                 \n\t-Moment:{moment}\
+                 \n\t-Content Type:{content_type}\
+                 \n\t-Tone:{tone}\
+                 \n\t-Objective:{objective}\
+                 \n\t-Structure:{structure}\
+                 \n\t-Location:{location}\
+                 \n\t-Audience:{audience}\
+                 \n\t-Company Info:{company_info}\
+                 \n\t-Extras Guidelines:{extras_guidelines}")
     llm = get_llm(model, 0.5)
     if location == "":
         location = "No specific target location."
@@ -126,9 +139,9 @@ def generate_content_2(
         audience = "No specific target audience. Make it appeal to everyone."
     
     # llm = OpenAI(model_name="gpt-3.5-turbo-16k", temperature=0.5)
-    print("using ", model)
+    logger.info(f"Using LLM:{model}")
 
-    print("Using Retreiver LLM:","gpt_3_5_chat_azure")
+    logger.info("Using Retreiver LLM:gpt_3_5_chat_azure")
     retrieve_llm = get_llm("gpt_3_5_chat_azure")
     # llm = AzureOpenAI(deployment_name="buzztrends-gpt35",model_name="gpt-35-turbo",openai_api_key=AZURE_OPENAI_KEY,openai_api_base=OPENAI_API_BASE,openai_api_version=OPENAI_API_VERSION,temperature=0.7,top_p=0.95)
     moment_query = f"Tell me in detail about {moment}"
@@ -230,6 +243,10 @@ Format the output as "Prompt":<Prompt>
         "content_type": content_type,
 
     })
+    logger.info(f"Generated Content:\
+                \nPost:{out['post']}\
+                \nExtras:{out['extras']}\
+                \nOpt Prompt:{completion.choices[0]['message']['content']}")
     return {"post":out["post"],"extras":out["extras"]}
 
 if __name__ == '__main__':
