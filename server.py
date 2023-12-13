@@ -570,7 +570,8 @@ def generate_post():
             product_name=data["product"],
             products = company_data["products"],
             ref_post = data.get("similar_content",None),
-            model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure"
+            model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure",
+            extras_guidelines=guidelines[data["content_type"]]["extras"]
         )
     print("Content Successfully Generated!")
     generation_available = company_data["generation_available"]
