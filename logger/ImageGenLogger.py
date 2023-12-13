@@ -1,7 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 
-class ContentGenLogger:
+class ImageGenLogger:
     def __init__(self) -> None:
         self.logger = logging.getLogger("ContentGenLogger")
         self.logger.setLevel(logging.INFO)
