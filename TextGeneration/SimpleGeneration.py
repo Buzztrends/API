@@ -8,7 +8,7 @@ from utils.utils import get_llm
 import openai
 
 logger = ContentGenLogger().getLogger()
-
+logger.info("Module Imported!")
 def generate_content(
     company_name: str,
     moment: str,

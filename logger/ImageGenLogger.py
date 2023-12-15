@@ -7,7 +7,7 @@ class ImageGenLogger:
         self.logger.setLevel(logging.INFO)
         
         #================ Formatter ================
-        self.fomartter = logging.Formatter(fmt="[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+        self.fomartter = logging.Formatter(fmt="[ImageGenLogger][%(asctime)s] %(levelname)s in %(module)s: %(message)s",
                                            datefmt="%B %d, %Y %H:%M:%S %Z")
         
         #================ Setting Up File Handler===

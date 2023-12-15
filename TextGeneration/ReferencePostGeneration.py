@@ -3,6 +3,7 @@ from langchain.chains import LLMChain, SequentialChain
 from langchain.vectorstores.base import VectorStoreRetriever
 from logger.contentGenLogger import ContentGenLogger
 logger = ContentGenLogger().getLogger()
+logger.info("Module Imported!")
 
 from utils.utils import get_llm
 

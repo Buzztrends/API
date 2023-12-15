@@ -6,6 +6,7 @@ import pandas as pd
 from logger.contentGenLogger import ContentGenLogger
 
 logger = ContentGenLogger().getLogger()
+logger.info("Module Imported!")
 
 def generate_post_with_prod(company_name: str,
     moment: str,

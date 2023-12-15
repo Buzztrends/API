@@ -4,6 +4,9 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from tqdm import tqdm
 from langchain.memory.vectorstore import VectorStoreRetrieverMemory
 from utils.utils import get_embedding_function
+from logger.MomentGenLogger import MomentGenLogger
+logger = MomentGenLogger().getLogger()
+logger.info("Logger Initialize")
 def build_splited_docs(sitetexts):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0, separators=[" ", ".", ",", "\n"])
 
