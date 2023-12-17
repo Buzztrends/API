@@ -51,7 +51,7 @@ def generate_post_with_prod(company_name: str,
                         company_info,
                         moment_retriver,
                         extras_guidelines,
-                        model="gpt_4_high_temp",
+                        model=model,
                     )
     else:
         logger.info("Hitting the generate_similar_content method")
@@ -64,6 +64,6 @@ def generate_post_with_prod(company_name: str,
                 company_info,
                 moment_retriver,
                 ref_post,
-                model="gpt_4_high_temp",
+                model=model,
                 extras_guidelines=extras_guidelines,
             )

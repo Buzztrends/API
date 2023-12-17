@@ -411,6 +411,8 @@ def update_user(user):
     data = request.get_json() if request.content_length != 0 else {}
     user_logger.info(f"{request.access_route} hit with the body:\
                      \n{data}")
+    user_logger.info(f"Request Raise by User:{user['username']}")
+    
     try:
         username = data["username"]
     except KeyError:
@@ -472,7 +474,10 @@ def update_user(user):
 @app.route("/user/delete_user",methods=["POST"])
 @token_required
 def delete_user(data):
-    # data = request.get_json()
+    body_data = request.get_json() if request.content_length !=0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{data['username']}")
     username = data["username"]
     
     if not is_user_valid(username):
@@ -492,7 +497,10 @@ def delete_user(data):
 @auth_api_key
 @token_required
 def save_post(user):
-    data = request.get_json()
+    data = request.get_json() if request.content_length !=0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{user['username']}")
     try:
         state = data["state"]
         post = data['post']
@@ -509,19 +517,31 @@ def save_post(user):
 @auth_api_key
 @token_required
 def get_save_post(user):
+    data = request.get_json() if request.content_length !=0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{user['username']}")
     return json.dumps(dict(save_posts=user['saved_post'],username=user['username']))
 #============= Save Topics==========================
 @app.route("/user/get_save_topic",methods=["GET"])
 @auth_api_key
 @token_required
 def get_save_topic(user):
+    data = request.get_json() if request.content_length !=0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{user['username']}")
     return json.dumps(dict(save_topics=user['saved_topics'],username=user['username']))
 
 @app.route("/user/save_topic",methods=["POST"])
 @auth_api_key
 @token_required
 def save_topic(user):
-    data = request.get_json()
+    data = request.get_json() if request.content_length !=0 else {}
+
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{user['username']}")
     try:
         post = data['moment']
     except Exception as e:
@@ -543,7 +563,10 @@ def save_topic(user):
 def generate_image():
     # write the driver code here
     global db
-    data = request.get_json()
+    data = request.get_json() if request.content_length !=0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{session['ctx']}")
     root.info(f"{request.access_route} hit with the body \nBody:{data}")
     try: 
         extras = data["extras"]
@@ -607,6 +630,9 @@ def generate_post():
         return json.dumps(
             dict(message="Invalid Company ID")
         )
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{company_data['username']}")
     root.info("Company Generation Info:",company_data.get("generation_available"))
     if company_data.get("generation_available") is None:
         company_data =db["users"]["user-data"].update_one({"company_id":data["company_id"]},update={"$set":{'generation_available':20}})
@@ -832,49 +858,6 @@ def get_products(user)->json :
         )
     else:
         return json.dumps(dict(products=list(user["products"].keys()),status_code=200))
-
-# @app.after_request
-# def logAfterRequest(response):
-#     print("response.content_length:",response.content_length)
-#     resp_data = response.get_data() if response.content_length is not None else ""
-#     if session.get("ctx"==-1):
-#         session["ctx"] = "No User name provided"
-#     ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
-#     out.info(
-#         "(IP: %s) | path: %s | method: %s | status: %s | size: %s >>> | user: %s \nResponse: %s",
-#         ip_addr,
-#         request.path,
-#         request.method,
-#         response.status,
-#         response.content_length,
-#         session["ctx"],
-#         resp_data
-#     )
-#     return response
-
-# @app.before_request
-# def logBeforeRequest():
-#     ip_addr = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
-#     session["ctx"] = "No username provided"
-#     json_data = {}
-#     print("request.content_length:",request.content_length)
-#     if request.content_length is not None:
-#         if request.content_length != 0:
-#             print("I am here")
-#             json_data = request.get_json()
-
-#     print("before Request\nsession['ctx']:",session['ctx'])
-#     extra.info(
-#         "Incoming Request from:(IP: %s) | path: %s | method: %s | size: %s | >>> user: %s | payload: %s",
-#         ip_addr,
-#         request.path,
-#         request.method,
-#         request.content_length,
-#         session["ctx"],
-#         json_data
-#     )
-    # request.headers.add("content-type","application/json")
-
 @app.route("/get_test",methods=["GET"])
 def get_test():
     print(request)
