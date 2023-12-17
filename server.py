@@ -524,6 +524,9 @@ def generate_post():
     
     print("Initializing Content Generation...")
     if data.get("product",-1)=="" or data.get("product",-1)==-1 or company_data.get("product",-1)=={}:
+        generation_guidelines = guidelines[data["content_type"]]["extras"]
+        if data["content_type"]==["blog post"]:
+            generation_guidelines+="Write the blog in such a manner that its not Robot detectable."
         if data.get("similar_content",-1) ==-1 or data.get("similar_content",-1) =='':
             out = generate_content_2(
                 company_name=company_data["company_name"],
@@ -537,7 +540,7 @@ def generate_post():
                 company_info=company_data["company_description"],
                 moment_retriver=moment_retriver,
                 model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure",
-                extras_guidelines = guidelines[data["content_type"]]["extras"]
+                extras_guidelines = generation_guidelines
             )
         else:
             print("Similar Content Triggered")
@@ -741,7 +744,7 @@ if __name__ == "__main__":
     os.environ['ENV_SETTINGS']=env_settings
     app.run(
             host="0.0.0.0",
-            port=443,
+            port=5000,
             debug=True,
-            ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
+            # ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
     )
