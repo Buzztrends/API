@@ -401,7 +401,7 @@ def get_user(data):
     #     return json.dumps(
     #         dict(message="User Does not Exists",status_code=401)
     #     )
-    return json.dumps(data)
+    return json.dumps(data,default=str)
 
 @app.route("/user/update_user",methods=["POST"])
 @auth_api_key
