@@ -26,7 +26,12 @@
     },
     "whatsapp post":{
         "tone":"informative",
-        "structure":"content size:400 or less characters,characters ideal: 300 to 500,",
+        "structure":"content size:400 or less characters,characters ideal: 300 to 500,Guideline: Not robot detectable. No plagirism",
         "extras":"Hashtags: requried maybe, Image required: Maybe"    
+    },
+    "blog post":{
+        "tone":"informative",
+        "structure":"content size:1900-2000 words,",
+        "extras":"Hashtags: Not required, Image required: Maybe"    
     }
 }

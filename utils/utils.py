@@ -28,7 +28,22 @@ def replace_website_links(text):
     regex = r"- (\w+\.com)"
     return re.sub(regex, "", text)
 
-def get_llm(name, temperature=0):
+def find_keywords(reference_post:str):
+    regex = r"keywords?\s*:.*"
+    # keywords? : s? means s is optional here
+    # \s* means there can be arbitrary number of whitspaces
+    # ':' is a must
+    # .* means there can be anything of anysize
+
+    # finding all the keywords
+    keywords = re.findall(regex,reference_post,re.IGNORECASE)
+    
+    #replacing words to null
+    reference_post = re.sub(regex,"",reference_post,flags=re.IGNORECASE)
+    return reference_post,keywords
+
+
+def get_llm(name:str, temperature:float=0):
     return {
         "gpt_3_5_chat_azure":AzureChatOpenAI(openai_api_key=os.environ["AZURE_OPENAI_KEY"],openai_api_base=os.environ["AZURE_OPENAI_API_BASE"],deployment_name="buzztrends-gpt35-turbo16k",openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],temperature=temperature),
         "gpt_3_5_chat":ChatOpenAI(model_name="gpt-3.5-turbo-16k", temperature=temperature),

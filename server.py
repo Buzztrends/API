@@ -1,6 +1,4 @@
 import argparse
-import logging
-
 #------------- SERVER IMPORTS-------------
 import os
 
@@ -23,7 +21,6 @@ root.addHandler(console_handler)
 root.setLevel(logging.DEBUG)
 root.log(10,"Root Initialized")
 
-
 if not os.path.exists("./config/.env"):
     # os.mkdir("./config/.env")
     with open("./config/.env","w") as f:
@@ -42,7 +39,7 @@ import jwt
 import json
 import base64
 import bcrypt
-from flask import Flask, request, make_response, jsonify,session
+from flask import Flask, request, make_response, jsonify
 from datetime import datetime, timedelta
 from security.auth import hash_password,verify_password
 from rsa import newkeys, decrypt, encrypt,PrivateKey,PublicKey
@@ -144,7 +141,6 @@ def token_required(f):
                 'message' : 'Token is invalid !!'
             }), 401
         # returns the current logged in users context to the routes
-        session["ctx"] = current_user["username"]
         return  f(current_user,*args,**kwargs)
   
     return decorated
@@ -331,6 +327,7 @@ def register_user():
 @app.route("/user/authenticate",methods=["POST"])
 @auth_api_key
 def login_user():
+
     global user_logger
     data = request.get_json() if request.content_length != 0 else {}
     print(user_logger.name)
@@ -347,6 +344,7 @@ def login_user():
             )
     except KeyError:
         user_logger.error("No Username found in request")
+
         return json.dumps(
             dict(message="Username Not provided",status_code=401),401
         )
@@ -357,21 +355,28 @@ def login_user():
         return json.dumps(
             dict(message="Password Not provided",status_code=406),406
         )
-    hashed_password = db["users"]["user-data"].find_one({"username":data["username"]})["password"]
+
+    passw = data["password"]
+    hashed_password = db["users"]["user-data"].find_one({"username":data["username"].lower()})["password"]
+
     if verify_password(passw,hashed_password):
         user_logger.info("Password Verified! successfully")
         token = jwt.encode({
-            'username': data["username"],
+            'username': data["username"].lower(),
             'exp' : datetime.utcnow() + timedelta(minutes = 300)
         }, app.config['SECRET_KEY'])
+
         user_logger.info("User Authenticated Successfully!")
-        response = jsonify(dict(message="User Authenticated Successfully",username=data["username"],company_name=db["users"]["user-data"].find_one({"username":data["username"]})["company_name"],company_id=db["users"]["user-data"].find_one({"username":data["username"]})["company_id"],token=token,status_code=200))
+
+        response = jsonify(dict(message="User Authenticated Successfully",username=data["username"],company_name=db["users"]["user-data"].find_one({"username":data["username"].lower()})["company_name"],company_id=db["users"]["user-data"].find_one({"username":data["username"].lower()})["company_id"],token=token,status_code=200))
+
         
     else:
         response = json.dumps(dict(message="User authentication Failed",status_code=401))
 
     # response.headers.add('Access-Control-Allow-Origin', '*')
     user_logger.info(f"Response:\n\t{response}")
+
     return response
 
 
@@ -651,6 +656,9 @@ def generate_post():
     
     root.info("Initializing Content Generation...")
     if data.get("product",-1)=="" or data.get("product",-1)==-1 or company_data.get("product",-1)=={}:
+        generation_guidelines = guidelines[data["content_type"]]["extras"]
+        if data["content_type"]==["blog post"]:
+            generation_guidelines+="Write the blog in such a manner that its not Robot detectable."
         if data.get("similar_content",-1) ==-1 or data.get("similar_content",-1) =='':
             out = generate_content_2(
                 company_name=company_data["company_name"],
@@ -664,7 +672,7 @@ def generate_post():
                 company_info=company_data["company_description"],
                 moment_retriver=moment_retriver,
                 model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure",
-                extras_guidelines = guidelines[data["content_type"]]["extras"]
+                extras_guidelines = generation_guidelines
             )
         else:
             root.info("Similar Content Triggered")
@@ -697,8 +705,10 @@ def generate_post():
             product_name=data["product"],
             products = company_data["products"],
             ref_post = data.get("similar_content",None),
+
             extras_guidelines=guidelines[data["content_type"]]["extras"],
             model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure"
+
         )
     root.info("Content Successfully Generated!")
     generation_available = company_data["generation_available"]
@@ -858,11 +868,17 @@ def get_products(user)->json :
         )
     else:
         return json.dumps(dict(products=list(user["products"].keys()),status_code=200))
+
 @app.route("/get_test",methods=["GET"])
 def get_test():
     print(request)
     print("Hey there")
     return json.dumps(dict(message="You did it!"))
+
+@app.route("/")
+def index():
+    return "Buzztrends Index"
+
 if __name__ == "__main__":
    
 

@@ -4,7 +4,7 @@ from typing import List,Union
 from pydantic_core import CoreSchema
 from pydantic import BaseModel, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
-
+from typing import Dict,List
 
 """
 moment data model:
@@ -51,9 +51,11 @@ class User(BaseModel):
     generation_available:int                        = 99
     products           : dict                       = {} 
     moments            : Union[Moments,None]        = None
-    saved_posts       : Union[dict[str,List],None] = {'under_review':[],'reviewed':[],'live':[]}
-    last_5_generations : Union[list[Post],None,List] = []
-    saved_topics        : Union[dict[str,List],None] = []
+
+    saved_posts       : Union[Dict[str,List],None] = {'under_review':[],'reviewed':[],'live':[]}
+    last_5_generations : Union[List[Post],None,List] = []
+    saved_topics        : Union[Dict[str,List],None] = []
+
     model_config = ConfigDict(title='Main')
     
     @classmethod
@@ -139,7 +141,7 @@ class APIModel:
         self.user = user
         self.role = "non_admin"
 
-    def to_json(self) -> dict[str:str]:
+    def to_json(self) -> Dict[str,str]:
         return {"uid":self.uid,"user":self.user,"role":self.role}
 
     def from_json(self,json_:dict) -> None:

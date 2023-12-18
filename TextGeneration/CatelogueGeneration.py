@@ -1,12 +1,18 @@
+
 from .SimpleGeneration import generate_content,generate_content_2
+
 from .ReferencePostGeneration import generate_similar_content
 from .utils import prepare_prods
 from typing import Union
 import pandas as pd
+
 from logger.contentGenLogger import ContentGenLogger
 
 logger = ContentGenLogger().getLogger()
 logger.info("Module Imported!")
+
+from typing import Dict
+
 
 def generate_post_with_prod(company_name: str,
     moment: str,
@@ -23,7 +29,7 @@ def generate_post_with_prod(company_name: str,
     tone:Union[str,None] = None,
     structure:Union[str,None] = None,
     model="gpt_3_5_chat_azure",
-    )-> dict[str,str]:
+    )-> Dict[str,str]:
     prod = prepare_prods(products[product_name],product_name)
     company_info += "Following are some of the products sell by {company_name}. Talk about the following products in the post: \n"+ prod
     logger.info(f"{__name__} Called Called:\n- Parameters:\
@@ -38,7 +44,9 @@ def generate_post_with_prod(company_name: str,
                  \n\t-Company Info:{company_info}\
                  \n\t-Extras Guidelines:{extras_guidelines}")
     if ref_post is None:
+
         logger.info("Hitting the generate_content_2 method")
+
         return generate_content_2(
                         company_name,
                         moment,
