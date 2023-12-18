@@ -141,6 +141,7 @@ def token_required(f):
                 'message' : 'Token is invalid !!'
             }), 401
         # returns the current logged in users context to the routes
+        session['ctx'] = current_user['username']
         return  f(current_user,*args,**kwargs)
   
     return decorated
@@ -571,7 +572,11 @@ def generate_image():
     data = request.get_json() if request.content_length !=0 else {}
     user_logger.info(f"{request.access_route} hit with the body:\
                      \n{data}")
-    user_logger.info(f"Request Raise by User:{session['ctx']}")
+    if session.get("ctx",-1)==-1:
+        username = "No username found"
+    else:
+        username = session['ctx']
+    user_logger.info(f"Request Raise by User:{username}")
     root.info(f"{request.access_route} hit with the body \nBody:{data}")
     try: 
         extras = data["extras"]
