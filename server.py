@@ -2,7 +2,7 @@ import argparse
 #------------- SERVER IMPORTS-------------
 import os
 
-
+import logging
 from logger.UserLogger import UserLogger
 
 user_logger =  UserLogger().getLogger()
