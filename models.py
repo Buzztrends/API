@@ -139,7 +139,7 @@ class APIModel:
         self.user = user
         self.role = "non_admin"
 
-    def to_json(self) -> Dict[str:str]:
+    def to_json(self) -> Dict[str,str]:
         return {"uid":self.uid,"user":self.user,"role":self.role}
 
     def from_json(self,json_:dict) -> None:
