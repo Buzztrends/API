@@ -2,6 +2,25 @@ import argparse
 #------------- SERVER IMPORTS-------------
 import os
 
+
+from logger.UserLogger import UserLogger
+
+user_logger =  UserLogger().getLogger()
+user_logger.info("Logger Intialized")
+
+root= logging.root
+formatter = logging.Formatter("[%(asctime)s] %(levelname)s in %(module)s: %(message)s","%B %d, %Y %H:%M:%S %Z",)
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+console_handler.setLevel(logging.DEBUG)
+file_handler = logging.FileHandler("./logs/root.log")
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.DEBUG)
+root.addHandler(file_handler,)
+root.addHandler(console_handler)
+root.setLevel(logging.DEBUG)
+root.log(10,"Root Initialized")
+
 if not os.path.exists("./config/.env"):
     # os.mkdir("./config/.env")
     with open("./config/.env","w") as f:
@@ -92,7 +111,6 @@ def api_admin_action(func):
         collection = db["users"]["api_subscribers"]
         print(userId)
         db_resp= collection.find_one({"uid":userId})
-        print(db_resp,"\n================\n")
         if db_resp is None:
             return json.dumps(dict(message="Invalid User Provided",status_code=401))
         else:
@@ -188,7 +206,6 @@ def create_api_admin():
     
     API_KEY = encrypt(user.uid.encode(),pub)
     API_KEY = base64.b64encode(API_KEY).decode("utf-8")
-    print(user.to_json())
     db["users"]["api_subscribers"].insert_one((user.to_json()))
     return json.dumps(
         dict(
@@ -216,7 +233,6 @@ def register_api():
         pub = PublicKey.load_pkcs1(pub)
         API_KEY = encrypt(user.uid.encode(),pub)
         API_KEY = base64.b64encode(API_KEY).decode("utf-8")
-        print(user.to_json())
         db["users"]["api_subscribers"].insert_one((user.to_json()))
         return json.dumps(
             dict(
@@ -277,40 +293,89 @@ def index_():
 
 @auth_api_key
 def register_user():
-    data = request.get_json()
-    if  is_user_valid(data["username"]):
+    data = request.get_json() if request.content_length != 0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    try:
+        if  is_user_valid(data["username"]):
+            return json.dumps(
+                dict(message="User already Exists",status_code=401)
+            )
+    except KeyError:
+        user_logger.error("No Username found in request")
         return json.dumps(
-            dict(message="User already Exists",status_code=401)
+            dict(message="Username Not provided",status_code=406),406
         )
-    passw = data["password"]
+    try:
+        passw = data["password"]
+    except KeyError:
+        user_logger.error("No password found in request")
+        return json.dumps(
+            dict(message="Password Not provided",status_code=406),406
+        )
+    user_logger.info("Encrypting password")
     enc_password = hash_password(passw)
+    user_logger.info("Encryption Successfull")
+
     data["password"] = enc_password
     data["role"] = "non_admin"
     user_model = User(**data)
     db["users"]["user-data"].insert_one(user_model.model_dump())
-    print("Transaction Success")
+    user_logger.info("DB Transaction Success")
     return json.dumps(dict(message="User Registered Successfully",user=data["username"]))
 
 @app.route("/user/authenticate",methods=["POST"])
 @auth_api_key
 def login_user():
-    data = request.get_json()
-    if not is_user_valid(data["username"].lower()):
+
+    global user_logger
+    data = request.get_json() if request.content_length != 0 else {}
+    print(user_logger.name)
+    root.info("==================================================")
+    user_logger.log(30,"Inside Login user")
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+
+    try:
+        if not is_user_valid(data["username"]):
+            user_logger.error("User Does not Exists")
+            return json.dumps(
+                dict(message="User Does not Exists",status_code=401)
+            )
+    except KeyError:
+        user_logger.error("No Username found in request")
+
         return json.dumps(
-            dict(message="User Does not Exists",status_code=401)
+            dict(message="Username Not provided",status_code=401),401
         )
+    try:
+        passw = data["password"]
+    except KeyError:
+        user_logger.error("No password found in request")
+        return json.dumps(
+            dict(message="Password Not provided",status_code=406),406
+        )
+
     passw = data["password"]
     hashed_password = db["users"]["user-data"].find_one({"username":data["username"].lower()})["password"]
+
     if verify_password(passw,hashed_password):
+        user_logger.info("Password Verified! successfully")
         token = jwt.encode({
             'username': data["username"].lower(),
             'exp' : datetime.utcnow() + timedelta(minutes = 300)
         }, app.config['SECRET_KEY'])
 
+        user_logger.info("User Authenticated Successfully!")
+
         response = jsonify(dict(message="User Authenticated Successfully",username=data["username"],company_name=db["users"]["user-data"].find_one({"username":data["username"].lower()})["company_name"],company_id=db["users"]["user-data"].find_one({"username":data["username"].lower()})["company_id"],token=token,status_code=200))
+
         
     else:
         response = json.dumps(dict(message="User authentication Failed",status_code=401))
+
+    # response.headers.add('Access-Control-Allow-Origin', '*')
+    user_logger.info(f"Response:\n\t{response}")
 
     return response
 
@@ -319,16 +384,24 @@ def login_user():
 @auth_api_key
 @token_required
 def get_user(data):
-    # print(request.json())
-    # data = request.get_json()
-    user = find_company(data["company_id"])
-    if user == None:
-        return json.dumps(
-            dict(message="User Does not Exists",status_code=401)
-        )
-    print("Returning user data")
-    print(user)
-    return json.dumps(user)
+    """
+    Args:
+        data- Userdata Model
+        returns - user data
+    
+    Request Body- {}
+    """
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{data['username']}")
+    # # print(request.json())
+    # # data = request.get_json()
+    # user = find_company(data["company_id"])
+    # if user == None:
+    #     return json.dumps(
+    #         dict(message="User Does not Exists",status_code=401)
+    #     )
+    return json.dumps(data)
 
 @app.route("/user/update_user",methods=["POST"])
 @auth_api_key
@@ -339,34 +412,63 @@ def update_user(user):
             old_value
             new_value
     """
-    data = request.get_json()
-    username = data["username"]
-    parameter_to_update = data["parameter_to_update"]
-    old_value = data["old_value"]
-    new_value = data["new_value"]
+
+    data = request.get_json() if request.content_length != 0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{user['username']}")
+    
+    try:
+        username = data["username"]
+    except KeyError:
+        user_logger.error("No Username found in request")
+        return json.dumps(
+            dict(message="Username Not provided",status_code=401),401
+        )
+    try:
+        parameter_to_update = data["parameter_to_update"]
+    except KeyError:
+        user_logger.error("No Parameter to update found in request")
+        return json.dumps(
+            dict(message="parameter_to_update Not provided",status_code=406),406
+        )
+    old_value = data.get("old_value",None)
+    try:
+        new_value = data["new_value"]
+    except KeyError:
+        user_logger.error("No New Value found in request")
+        return json.dumps(
+            dict(message="new_value Not provided",status_code=406),406
+        )
 
     if is_user_valid(username):
     
         if parameter_to_update == "password":
+            user_logger.info("Updating Password...")
             if old_value is None or old_value == "":
+                user_logger.error("Invalid New Password Provided!")
                 return json.dumps(
                     dict(message="Old Password Cannot be None or empty",status_code=401)
                 )
             else:
                 old_password = db["users"]["user-data"].find_one({"username":username})["password"]
-                print(old_password)
                 verify = verify_password(old_value,old_password)
-                print("Verify Status:",verify)
+                user_logger.info("Verify Status:",verify)
                 if verify:
                     db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":hash_password(new_value)}})
+                    user_logger.info("Values updated Successfully!")
                 else:
+                    user_logger.error("Incorrect Old Password Provided")
                     return json.dumps(
                         dict(message="Incorrect Old Password Provided",status_code=401)
                     )
                 
         else:
             db["users"]["user-data"].update_one(filter={"username":username},update={"$set":{f"{parameter_to_update}":(new_value)}})
+            user_logger.info("Values updated Successfully!")
+
     else:
+        user_logger.error("Invalid User Found!")
         return json.dumps(
                         dict(message="Invalid User Provided",status_code=401)
                     )
@@ -377,15 +479,20 @@ def update_user(user):
 @app.route("/user/delete_user",methods=["POST"])
 @token_required
 def delete_user(data):
-    # data = request.get_json()
+    body_data = request.get_json() if request.content_length !=0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{data['username']}")
     username = data["username"]
     
     if not is_user_valid(username):
+        user_logger.error("Invalid User Encountered")
         return json.dumps(
             dict(message="Invalid User Encountered",status_code=401)
         )
     else:
         db["users"]["user-data"].delete_one({"username":username})
+        user_logger.warning(f"User: {username} Deleted")
         return json.dumps(
             dict(message="User Deleted Successfully",status_code=200)
         )
@@ -395,7 +502,10 @@ def delete_user(data):
 @auth_api_key
 @token_required
 def save_post(user):
-    data = request.get_json()
+    data = request.get_json() if request.content_length !=0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{user['username']}")
     try:
         state = data["state"]
         post = data['post']
@@ -412,19 +522,31 @@ def save_post(user):
 @auth_api_key
 @token_required
 def get_save_post(user):
+    data = request.get_json() if request.content_length !=0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{user['username']}")
     return json.dumps(dict(save_posts=user['saved_post'],username=user['username']))
 #============= Save Topics==========================
 @app.route("/user/get_save_topic",methods=["GET"])
 @auth_api_key
 @token_required
 def get_save_topic(user):
+    data = request.get_json() if request.content_length !=0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{user['username']}")
     return json.dumps(dict(save_topics=user['saved_topics'],username=user['username']))
 
 @app.route("/user/save_topic",methods=["POST"])
 @auth_api_key
 @token_required
 def save_topic(user):
-    data = request.get_json()
+    data = request.get_json() if request.content_length !=0 else {}
+
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{user['username']}")
     try:
         post = data['moment']
     except Exception as e:
@@ -446,10 +568,15 @@ def save_topic(user):
 def generate_image():
     # write the driver code here
     global db
-    data = request.get_json()
+    data = request.get_json() if request.content_length !=0 else {}
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{session['ctx']}")
+    root.info(f"{request.access_route} hit with the body \nBody:{data}")
     try: 
         extras = data["extras"]
     except ValueError:
+        root.error("Extras not provided")
         json.dumps(
             dict(message="Extras not available",status_code=401)
         )
@@ -482,6 +609,7 @@ def generate_post():
     global db
     global guidelines
     data = request.get_json()
+    root.info(f"{request.access_route} hit with the body \nBody:{data}")
     if data.get("company_id",-1) == -1:
         return json.dumps(dict(message="Provide the compant ID",status_code=403)),403
     if data.get("moment",-1) == -1:
@@ -503,17 +631,21 @@ def generate_post():
     moment = data["moment"].split(" | ")[0]
     company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
     if not company_data:
+        root.error("Invalid Company ID found")
         return json.dumps(
             dict(message="Invalid Company ID")
         )
-    print("Company Generation Info:",company_data.get("generation_available"))
+    user_logger.info(f"{request.access_route} hit with the body:\
+                     \n{data}")
+    user_logger.info(f"Request Raise by User:{company_data['username']}")
+    root.info("Company Generation Info:",company_data.get("generation_available"))
     if company_data.get("generation_available") is None:
         company_data =db["users"]["user-data"].update_one({"company_id":data["company_id"]},update={"$set":{'generation_available':20}})
     elif company_data["generation_available"] == 0:
         return json.dumps(
             dict(message="You have exhausted your generation credits!",status_code=403)
         ),403
-    print("Capturing Moments ...")
+    root.info("Capturing Moments ...")
     moment_context_sitetexts = get_sitetexts(get_related_links(moment.replace("Title: ", "") + f" {company_data['content_category']}", country=company_data["country_code"], num_results=5))
     moment_vectorstore, moment_retriver, _, _ = build_vectorstore(moment_context_sitetexts)
 
@@ -522,7 +654,7 @@ def generate_post():
             input_key="moment_query"
                             )
     
-    print("Initializing Content Generation...")
+    root.info("Initializing Content Generation...")
     if data.get("product",-1)=="" or data.get("product",-1)==-1 or company_data.get("product",-1)=={}:
         generation_guidelines = guidelines[data["content_type"]]["extras"]
         if data["content_type"]==["blog post"]:
@@ -543,7 +675,7 @@ def generate_post():
                 extras_guidelines = generation_guidelines
             )
         else:
-            print("Similar Content Triggered")
+            root.info("Similar Content Triggered")
             out = generate_similar_content(
                 company_name=company_data["company_name"],
                 moment=data["moment"],
@@ -558,7 +690,7 @@ def generate_post():
                 extras_guidelines = guidelines[data["content_type"]]["extras"]
             )
     else:
-        print("Product Content Triggered")
+        root.info("Product Content Triggered")
         out = generate_post_with_prod(
             company_name=company_data["company_name"],
             moment=data["moment"],
@@ -573,15 +705,18 @@ def generate_post():
             product_name=data["product"],
             products = company_data["products"],
             ref_post = data.get("similar_content",None),
-            model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure",
-            extras_guidelines=guidelines[data["content_type"]]["extras"]
+
+            extras_guidelines=guidelines[data["content_type"]]["extras"],
+            model="gpt_4_high_temp" if os.environ['ENV_SETTINGS'] =="PROD" else "gpt_3_5_chat_azure"
+
         )
-    print("Content Successfully Generated!")
+    root.info("Content Successfully Generated!")
     generation_available = company_data["generation_available"]
-    print("Updating User Credits...")
+    root.info("Updating User Credits...")
     db["users"]["user-data"].find_one_and_update(filter={"company_id":data["company_id"]},update={"$set":{"generation_available":generation_available-1}})
     out["remaining_generation"]=generation_available-1
-    print("User Credits Updated!")
+    root.info("User Credits Updated!")
+    root.info(f"Response Provided:{out}")
     return json.dumps(out),201
 
 #           Text Generation Route - Reference Post Generation
@@ -609,7 +744,7 @@ def generate_reference_post():
         data["audience"]=""
     if data.get("custom_moment",-1) == -1:
         data["custom_moment"]=1
-    print(data)
+    root.info(data)
     moment = data["moment"].split(" | ")[0]
     company_data = db["users"]["user-data"].find_one(filter={"company_id":data["company_id"]})
     if company_data["generation_available"] == 0:
@@ -656,6 +791,7 @@ def generate_reference_post():
     generation_available = company_data["generation_available"]
     db["users"]["user-data"].find_one_and_update(filter={"company_id":data["company_id"]},update={"$set":{"generation_available":generation_available-1}})
     out["remaining_generation"]=generation_available-1
+    root.info(f"Response Provided:{out}")
     return json.dumps(out)
 
 #           Text Generation Route - Catelogue Generation
@@ -719,6 +855,7 @@ def generate_post_from_catalogue():
     generation_available = company_data["generation_available"]
     db["users"]["user-data"].find_one_and_update(filter={"company_id":data["company_id"]},update={"generation_available":generation_available-1})
     out["remaining_generation"]=generation_available-1
+    root.info(f"Response Provided:{out}")
     return json.dumps(out)
 
 @app.route("/user/get_products",methods=["GET","POST"])
@@ -732,22 +869,29 @@ def get_products(user)->json :
     else:
         return json.dumps(dict(products=list(user["products"].keys()),status_code=200))
 
+@app.route("/get_test",methods=["GET"])
+def get_test():
+    print(request)
+    print("Hey there")
+    return json.dumps(dict(message="You did it!"))
+
 @app.route("/")
 def index():
     return "Buzztrends Index"
+
 if __name__ == "__main__":
    
 
     parser = argparse.ArgumentParser(description='find env settings',prog='server.py')
-    parser.add_argument('--env',dest='ENV_SETTINGS',default='DEV',help="Setup the enviroment",choices=["DEV","PROD"])
+    parser.add_argument('--env',dest='ENV_SETTINGS',default='PROD',help="Setup the enviroment",choices=["DEV","PROD"])
 
     arg = (parser.parse_args())
     env_settings = (arg.ENV_SETTINGS)
-    print("Booting the server in ",env_settings," settings")
-    os.environ['ENV_SETTINGS']=env_settings
+    if os.environ.get("ENV_SETTINGS",-1) ==-1:
+        os.environ['ENV_SETTINGS']=env_settings
+    print("Booting the server in ",os.environ['ENV_SETTINGS']," settings")
     app.run(
             host="0.0.0.0",
             port=443,
-            debug=True,
             ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
     )

@@ -51,9 +51,11 @@ class User(BaseModel):
     generation_available:int                        = 99
     products           : dict                       = {} 
     moments            : Union[Moments,None]        = None
+
     saved_posts       : Union[Dict[str,List],None] = {'under_review':[],'reviewed':[],'live':[]}
     last_5_generations : Union[List[Post],None,List] = []
     saved_topics        : Union[Dict[str,List],None] = []
+
     model_config = ConfigDict(title='Main')
     
     @classmethod

@@ -8,16 +8,22 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
 
-from utils.utils import get_embedding_function
+from utils.utils import get_embedding_function,get_llm
 
-print(os.path.abspath(os.path.curdir)+"/ImageGeneration/")
-print("Creating Indexes from Handbook...")
+from logger.ImageGenLogger import ImageGenLogger
+
+logger = ImageGenLogger().getLogger()
+
+logger.info("Creating Indexes from Handbook...")
 pdf = PyPDFLoader(file_path=os.path.abspath(os.path.curdir)+"/ImageGeneration/"+r"prompt_book.pdf")
 index = VectorstoreIndexCreator().from_loaders([pdf])
-gpt_3_5 = ChatOpenAI(model_name="gpt-3.5-turbo-16k", temperature=0.7)
-print("Indexes created Successfully")
+logger.info("Indexes created Successfully")
 
 def generate_image_edenai(prompt, provider="openai", dims="512x512"):
+    logger.info(f"{__name__} Called:\n- Parameters:\
+                \n\t-Prompt:{prompt}\
+                \n\t-Provider:{provider}\
+                \n\t-Dimensions:{dims}")
     url = "https://api.edenai.run/v2/image/generation"
 
     payload = {
@@ -36,19 +42,27 @@ def generate_image_edenai(prompt, provider="openai", dims="512x512"):
     }
 
     response = requests.post(url, json=payload, headers=headers).json()
-    print(response.keys())
     try:
-        print(response[provider].keys())
         img_url = response[provider]['items'][0]['image_resource_url']
     except Exception as e:
-        print(e,"\n")
-        print(response[provider]['error'])
+        logger.error(e,"\n")
+        logger.error(response[provider]['error'])
         return ""
+    logger.info(f"Value returned: {img_url}")
     return img_url
 
 def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
+    #======= Load Prompt guide indexes============================
     global index
-    global gpt_3_5
+    
+    #======= Load Models =========================================
+    logger.info("Using Model[gpt_3_5_chat_azure] Temperature[0.7]")
+    gpt_3_5 = get_llm("gpt_3_5_chat_azure",0.7)
+
+    logger.info(f"{__name__} Called:\n- Parameters:\
+                \n\t-Prompt:{prompt}\
+                \n\t-Provider:{provider}\
+                \n\t-Dimensions:{dims}")
     url = "https://api.edenai.run/v2/image/generation"
     image_gen_prompt = """
     [System]: You're an AI that narrate the scence to click the marketing picture for the given requirements, keep the prompt limited to 350 characters. If The information discuss about humans or living beings, always make 2D digital arts with illustrative humans and create an illustration.
@@ -60,10 +74,8 @@ def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
     image_gen_prompt_template = PromptTemplate(input_variables=["picture_info"],template=image_gen_prompt)
     content_gen_chain = LLMChain(llm=gpt_3_5, prompt=image_gen_prompt_template, output_key="scence detail")
     chain_out  = content_gen_chain({"picture_info":prompt})["scence detail"]
-    print(chain_out)
-    print("Chain Output\n====================\n")
     opt_prompt = index.query(f"Write a prompt in 500 characters to create a picutre for the current scene. Tell the camera angle, lighting, color composition, picture styles and other important details. Make sure the characters are no more than 550.{chain_out}",llm=gpt_3_5)
-    print(opt_prompt)
+    logger.info(f"Optimal prompt generated:{opt_prompt}")
     payload = {
         "response_as_dict": True,
         "attributes_as_list": False,
@@ -80,14 +92,15 @@ def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
     }
 
     response = requests.post(url, json=payload, headers=headers).json()
-    print(response.keys())
     if response.get("error",-1) !=-1:
+        logger.info("Response Received Successfully without errors!")
         return response
     try:
-        print(response[provider].keys())
+        logger.info(response[provider].keys())
         img_url = response[provider]['items'][0]['image_resource_url']
     except Exception as e:
-        print(e,"\n")
-        print(response[provider]['error'])
+        logger.error(e,"\n")
+        logger.error(response[provider]['error'])
         return ""
+    logger.info(f"Image Url:{img_url}")
     return img_url

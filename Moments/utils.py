@@ -5,6 +5,9 @@ from tqdm import tqdm
 from langchain.memory.vectorstore import VectorStoreRetrieverMemory
 from langchain.retrievers import BM25Retriever,EnsembleRetriever
 from utils.utils import get_embedding_function
+from logger.MomentGenLogger import MomentGenLogger
+logger = MomentGenLogger().getLogger()
+logger.info("Logger Initialize")
 def build_splited_docs(sitetexts):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0, separators=[" ", ".", ",", "\n"])
 
@@ -18,11 +21,11 @@ def build_splited_docs(sitetexts):
     return docs, metadatas
 
 def build_vectorstore(sitetexts, k=20):
-    print("Splitting")
+    logger.info("Splitting")
     docs, metadatas = build_splited_docs(sitetexts)
-    print("encoding")
+    logger.info("encoding")
     vectorstore = Chroma.from_texts(docs, OpenAIEmbeddings(), metadatas=metadatas)
-    print("building retriver")
+    logger.info("building retriver")
     retriever = vectorstore.as_retriever(search_kwargs={'k': k})
     keyword_memory = VectorStoreRetrieverMemory(
         retriever=retriever,
@@ -33,7 +36,7 @@ def build_vectorstore(sitetexts, k=20):
         retriever=retriever,
         input_key="moments",
         )
-
+    logger.info("Returning Retriever")
     return vectorstore, retriever, keyword_memory, moment_memory
 
 

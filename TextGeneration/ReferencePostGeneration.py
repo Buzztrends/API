@@ -1,22 +1,36 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
 from langchain.vectorstores.base import VectorStoreRetriever
+from logger.contentGenLogger import ContentGenLogger
+logger = ContentGenLogger().getLogger()
+logger.info("Module Imported!")
 
 from utils.utils import get_llm
 
 def generate_similar_content(company_name: str,
-    moment: str,
-    content_type: str,
-    objective: str,
-    location: str,
-    audience: str,
-    company_info: str,
-    moment_retriver: VectorStoreRetriever,
-    ref_post:str,
-    extras_guidelines:str,
-    model="gpt_3_5_chat_azure"):
+                            moment: str,
+                            content_type: str,
+                            objective: str,
+                            location: str,
+                            audience: str,
+                            company_info: str,
+                            moment_retriver: VectorStoreRetriever,
+                            ref_post:str,
+                            extras_guidelines:str,
+                            model="gpt_3_5_chat_azure"):
+    logger.info(f"{__name__} Called:\n- Parameters:\
+                 \n\tCompany Name:{company_name}\
+                 \n\t-Moment:{moment}\
+                 \n\t-Content Type:{content_type}\
+                 \n\t-Objective:{objective}\
+                 \n\t-Location:{location}\
+                 \n\t-Audience:{audience}\
+                 \n\t-Company Info:{company_info}\
+                 \n\t-Extras Guidelines:{extras_guidelines}\
+                 \n\t-Reference Post:{ref_post}")
     llm = get_llm(model, 0.2)
-    print("Reference Post\n","="*20,ref_post)
+    logger.info(f"LLM Params: Model[{model}],Temperature[{0.2}]")
+    # print("Reference Post\n","="*20,ref_post)
 
     if location == "":
         location = "across the globe"
@@ -79,4 +93,7 @@ def generate_similar_content(company_name: str,
         "content_type": content_type,
         "ref_post": ref_post
     })
+    logger.info(f"Generated Content:\
+                \nPost:{out['post']}\
+                \nExtras:{out['extras']}")
     return {"post":out["post"],"extras":out["extras"]} 
