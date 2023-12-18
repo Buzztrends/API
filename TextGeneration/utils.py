@@ -1,10 +1,10 @@
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
-
+from typing import Dict
 import pandas as pd
 
 
-def  prepare_prods(products:dict[str,dict[str,str]],prod):
+def  prepare_prods(products:Dict[str,Dict[str,str]],prod):
     print("Inside prepare Prod")
     print("this is what i got \n",products)
     ans = ""
