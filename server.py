@@ -731,7 +731,10 @@ def get_products(user)->json :
         )
     else:
         return json.dumps(dict(products=list(user["products"].keys()),status_code=200))
-    
+
+@app.route("/")
+def index():
+    return "Buzztrends Index"
 if __name__ == "__main__":
    
 
