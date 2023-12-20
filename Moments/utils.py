@@ -38,19 +38,22 @@ def build_vectorstore(sitetexts, k=20):
         )
     logger.info("Returning Retriever")
     return vectorstore, retriever, keyword_memory, moment_memory
-
+def divide_chunks(l, n):
+    for i in range(0, len(l), n): 
+        yield l[i:i + n]
 
 def build_vectorstore_ensemble(sitetexts,k=20):
     print("Splitting")
     
     docs, metadatas = build_splited_docs(sitetexts)
     print("encoding")
+    chunked_docs = divide_chunks(docs)
+    chunked_metadatas = divide_chunks(metadatas)
     
-    vectorstore = Chroma.from_texts(docs, get_embedding_function(), metadatas=metadatas)
+    vectorstore = Chroma.from_texts(chunked_docs, get_embedding_function(), metadatas=chunked_metadatas)
     print("building retriver")
-    
     retriever = vectorstore.as_retriever(search_kwargs={'k': 40})
-    keyword_retreiver = BM25Retriever.from_texts(docs,metadatas=metadatas)
+    keyword_retreiver = BM25Retriever.from_texts(chunked_docs,metadatas=chunked_metadatas)
     
     keyword_retreiver.k = 40
     
