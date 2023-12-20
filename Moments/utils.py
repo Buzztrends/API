@@ -19,14 +19,18 @@ def build_splited_docs(sitetexts):
         # print(f"Split {page['source']} into {len(splits)} chunks")
 
     return docs, metadatas
-
+import uuid
 def build_vectorstore(sitetexts, k=20):
     logger.info("Splitting")
     docs, metadatas = build_splited_docs(sitetexts)
     logger.info("encoding")
+
+    ids = [uuid.uuid4() for i in range(len(docs))]
+    chunked_ids = divide_chunks(ids, 1000)
     chunked_docs = divide_chunks(docs,160)
     chunked_metadatas = divide_chunks(metadatas,160)
-    vectorstore = Chroma.from_texts(chunked_docs, get_embedding_function(), metadatas=chunked_metadatas)
+    vectorstore = Chroma()
+    vectorstore.add_texts(chunked_docs,metadatas=chunked_metadatas,ids=chunked_ids)
     logger.info("building retriver")
     retriever = vectorstore.as_retriever(search_kwargs={'k': k})
     keyword_memory = VectorStoreRetrieverMemory(
