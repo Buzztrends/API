@@ -24,7 +24,9 @@ def build_vectorstore(sitetexts, k=20):
     logger.info("Splitting")
     docs, metadatas = build_splited_docs(sitetexts)
     logger.info("encoding")
-    vectorstore = Chroma.from_texts(docs, OpenAIEmbeddings(), metadatas=metadatas)
+    chunked_docs = divide_chunks(docs)
+    chunked_metadatas = divide_chunks(metadatas,160)
+    vectorstore = Chroma.from_texts(chunked_docs, get_embedding_function(), metadatas=chunked_metadatas)
     logger.info("building retriver")
     retriever = vectorstore.as_retriever(search_kwargs={'k': k})
     keyword_memory = VectorStoreRetrieverMemory(
