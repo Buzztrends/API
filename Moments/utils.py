@@ -48,7 +48,7 @@ def build_vectorstore_ensemble(sitetexts,k=20):
     docs, metadatas = build_splited_docs(sitetexts)
     print("encoding")
     chunked_docs = divide_chunks(docs)
-    chunked_metadatas = divide_chunks(metadatas)
+    chunked_metadatas = divide_chunks(metadatas,160)
     
     vectorstore = Chroma.from_texts(chunked_docs, get_embedding_function(), metadatas=chunked_metadatas)
     print("building retriver")
