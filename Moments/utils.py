@@ -25,12 +25,13 @@ def build_vectorstore(sitetexts, k=20):
     docs, metadatas = build_splited_docs(sitetexts)
     logger.info("encoding")
 
-    ids = [uuid.uuid4() for i in range(len(docs))]
+    ids = [str(uuid.uuid4().hex) for i in range(len(docs))]
     chunked_ids = divide_chunks(ids, 1000)
     chunked_docs = divide_chunks(docs,160)
     chunked_metadatas = divide_chunks(metadatas,160)
-    vectorstore = Chroma()
-    vectorstore.add_texts(chunked_docs,metadatas=chunked_metadatas,ids=chunked_ids)
+    vectorstore = Chroma(embedding_function=OpenAIEmbeddings())
+    for doc,meta,ids_ in zip(chunked_docs,chunked_metadatas,chunked_ids):
+        vectorstore.add_texts(texts=doc,metadatas=meta,ids=ids_)
     logger.info("building retriver")
     retriever = vectorstore.as_retriever(search_kwargs={'k': k})
     keyword_memory = VectorStoreRetrieverMemory(
