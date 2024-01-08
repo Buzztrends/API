@@ -12,8 +12,8 @@ class UserLogger:
         
         #================ Setting Up File Handler===
         self.file_handler = RotatingFileHandler("./logs/UserLogs.log",
-                                                maxBytes=1000000,
-                                                backupCount=5)
+                                                maxBytes=100000000,
+                                                backupCount=10)
         self.file_handler.setFormatter(self.fomartter)
         self.file_handler.setLevel(10)
         self.logger.addHandler(self.file_handler,)

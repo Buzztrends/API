@@ -173,7 +173,7 @@ if __name__ == "__main__":
 
     user = User(company_name="Company 1",username="user_1",password="password",company_description="Company Description",content_category="Category 1",moments=moments,saved_items=[],last_5_generations=[])
 
-    from server import db
+    # from server import db
 
     # db["users"]["user-data"].insert_one(user.dict())
     # db["api_subscribers"]["users"].insert_one({"bee621fc-5deb-4409-a428-932112d9a1a7": {

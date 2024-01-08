@@ -897,6 +897,6 @@ if __name__ == "__main__":
     print("Booting the server in ",os.environ['ENV_SETTINGS']," settings")
     app.run(
             host="0.0.0.0",
-            port=443,
-            ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
+            port=5000,
+            # ssl_context=(os.environ["SSL_CERT"], os.environ["SSL_KEY"])
     )
