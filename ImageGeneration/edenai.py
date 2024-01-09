@@ -51,7 +51,7 @@ def generate_image_edenai(prompt, provider="openai", dims="512x512"):
     logger.info(f"Value returned: {img_url}")
     return img_url
 
-def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
+def generate_image_edenai_2(prompt, provider="openai",model="dalle-3", dims="512x512"):
     #======= Load Prompt guide indexes============================
     global index
     
@@ -83,6 +83,7 @@ def generate_image_edenai_2(prompt, provider="openai", dims="512x512"):
         "resolution": dims,
         "num_images": 1,
         "providers": provider,
+        "model":model,
         "text": opt_prompt+"\nNo text on image."
     }
     headers = {
